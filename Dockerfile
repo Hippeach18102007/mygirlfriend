@@ -1,6 +1,6 @@
 # --- Giai đoạn 1: Build ứng dụng ---
-# Sử dụng một image chứa Java Development Kit (JDK) và Maven để build code
-FROM eclipse-temurin:17-jdk-jammy as builder
+# THAY ĐỔI Ở DÒNG NÀY: Dùng image có sẵn cả Maven và JDK 17
+FROM maven:3.9-eclipse-temurin-17 as builder
 
 # Đặt thư mục làm việc bên trong image
 WORKDIR /app

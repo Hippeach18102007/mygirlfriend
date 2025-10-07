@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Chị, Người Em Thương</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+    <style>
+        body { margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-image: url('https://images.unsplash.com/photo-1502673530728-f79b41d2b5ea?q=80&w=2070&auto-format&fit=crop'); background-repeat: no-repeat; background-position: center center; background-size: cover; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+        .letter-container { background-color: rgba(255, 255, 255, 0.9); padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); max-width: 600px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2); animation: pop-up 1s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+        h1 { font-size: 2.5em; color: #c2185b; margin-bottom: 20px; }
+        h2 { color: #555; font-size: 1.5em; }
+        .message { font-size: 1.1em; line-height: 1.8; color: #333; text-align: left; margin-bottom: 30px; }
+        .signature { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3em; color: #555; text-align: right; margin-top: 20px; }
+        .heart { font-size: 3em; color: #e91e63; animation: beat 1.5s infinite; }
+        @keyframes pop-up { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+        .reply-section { margin-top: 40px; border-top: 1px dashed #ccc; padding-top: 30px; }
+        textarea { width: 100%; min-height: 100px; padding: 15px; font-family: 'Quicksand', sans-serif; font-size: 1em; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; box-sizing: border-box; }
+        button { background-color: #e91e63; color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 15px; transition: all 0.3s; }
+        button:hover { background-color: #c2185b; transform: scale(1.05); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* Kiểu cho input file */
+        input[type="file"] {
+            margin-top: 15px;
+            border: 1px dashed #c2185b;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #fff0f5;
+        }
+
+        /* Kiểu cho thông báo trạng thái */
+        #statusMessage {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none; /* Mặc định ẩn */
+        }
+        #statusMessage.success { background-color: #dff0d8; color: #3c763d; }
+        #statusMessage.error { background-color: #f2dede; color: #a94442; }
+    </style>
+</head>
+<body>
+
+<div class="letter-container">
+    <div class="heart">&#10084;</div>
+    <h1>Gửi chị, <span th:text="${tenNguoiNhan}"></span>!</h1>
+    <p class="message" th:utext="${loiNhanYeuThuong}"></p>
+    <p class="signature">Thân thương,<br><span th:text="${tenNguoiGui}"></span></p>
+
+    <div class="reply-section">
+        <h2>Chị có muốn nhắn lại gì cho em không?</h2>
+        <form id="replyForm" th:action="@{/gui-chi}" method="post" enctype="multipart/form-data">
+            <textarea name="reply_message" placeholder="Viết lời nhắn của chị ở đây..." required></textarea>
+            <input type="file" name="imageFile" accept="image/*">
+            <button id="submitButton" type="submit">Gửi cho em</button>
+        </form>
+        <div id="statusMessage"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById('replyForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+
+        form.addEventListener('submit', function(event) {
+            // Ngăn form gửi theo cách truyền thống (tải lại trang)
+            event.preventDefault();
+
+            // Vô hiệu hóa nút gửi để tránh spam click
+            submitButton.disabled = true;
+            submitButton.textContent = 'Đang gửi...';
+
+            // Tạo đối tượng FormData để thu thập dữ liệu form, bao gồm cả file
+            const formData = new FormData(form);
+
+            // Gửi dữ liệu bằng fetch API (AJAX)
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        // Nếu server trả về lỗi, ném ra lỗi để .catch() xử lý
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.text(); // Lấy nội dung text từ response thành công
+                })
+                .then(successMessage => {
+                    // Xử lý khi gửi thành công
+                    statusMessage.textContent = successMessage;
+                    statusMessage.className = 'success';
+                    statusMessage.style.display = 'block';
+
+                    form.reset(); // Xóa nội dung đã nhập trong form để viết tiếp
+
+                    // Ẩn thông báo sau 3 giây
+                    setTimeout(() => {
+                        statusMessage.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    // Xử lý khi có lỗi
+                    statusMessage.textContent = 'Lỗi: ' + error.message;
+                    statusMessage.className = 'error';
+                    statusMessage.style.display = 'block';
+                })
+                .finally(() => {
+                    // Luôn luôn kích hoạt lại nút gửi sau khi hoàn tất
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Gửi cho em';
+                });
+        });
+    });
+</script>
+
+</body>
+</html>

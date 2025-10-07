@@ -14,6 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class MessageController {
+    @GetMapping("/")
+    public String redirectToLetter() {
+        return "redirect:/gui-chi";
+    }
 
     private final String tenChi = "Ngọc Lan";
     private final String tenEm = "Tuấn Minh";

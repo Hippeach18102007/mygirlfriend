@@ -19,9 +19,9 @@ public class MessageController {
         return "redirect:/gui-chi";
     }
 
-    private final String tenChi = "Ngọc Lan";
-    private final String tenEm = "Tuấn Minh";
-    private final String loiNhan = "Từ ngày gặp chị, thế giới của em bỗng trở nên tươi đẹp và ý nghĩa hơn rất nhiều...";
+    private final String tenChi = "Bích Loan";
+    private final String tenEm = "Anh Đức";
+    private final String loiNhan = "Từ ngày gặp chị, thế giới của em bỗng trở nên tươi đẹp và ý nghĩa hơn rất nhiều... Cảm ơn chị đã đến và ở bên em";
 
     @Value("${spring.mail.username}")
     private String myEmail;

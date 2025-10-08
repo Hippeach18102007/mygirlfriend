@@ -56,4 +56,8 @@ public class MessageController {
             return ResponseEntity.status(500).body("Đã có lỗi xảy ra, không thể gửi tin nhắn.");
         }
     }
+    @GetMapping("/ky-niem")
+    public String showAlbumPage() {
+        return "ky-niem"; // Trả về file ky-niem.html trong thư mục templates
+    }
 }

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Những Khoảnh Khắc Của Chúng Mình</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #c2185b;
+      --secondary-color: #e91e63;
+      --background-color: #faf6f0;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Quicksand', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-image:
+              linear-gradient(to top, rgba(194, 24, 91, 0.3), rgba(0, 0, 0, 0.6)),
+              url('https://images.unsplash.com/photo-1502673530728-f79b41d2b5ea?q=80&w=2070&auto-format&fit=crop');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: cover;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+
+    .album-container {
+      background-color: var(--background-color);
+      padding: 40px 50px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      max-width: 1200px; /* Tăng chiều rộng tối đa của toàn bộ khung */
+      width: 90%;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: fade-in-up 1s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8em;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+
+    .subtitle {
+      font-size: 1.1em;
+      color: #777;
+      margin-bottom: 40px;
+    }
+
+    /* --- PHẦN GALLERY NÂNG CẤP --- */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Tăng chiều rộng tối thiểu của mỗi ảnh */
+      gap: 25px; /* Tăng khoảng cách giữa các ảnh */
+      margin-bottom: 40px;
+    }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Tăng độ sâu cho bóng đổ */
+      cursor: pointer;
+      opacity: 0;
+      animation: fade-in-up 0.8s forwards;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      background-color: #fff; /* Thêm nền trắng để viền nổi bật */
+      padding: 5px; /* Tạo khoảng cách cho viền trắng */
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Thêm độ trễ cho từng ảnh */
+    .gallery-item:nth-child(1) { animation-delay: 0.2s; }
+    .gallery-item:nth-child(2) { animation-delay: 0.3s; }
+    /* ... thêm cho các ảnh khác nếu cần */
+
+    .gallery-item img {
+      width: 100%;
+      height: 220px; /* Tăng chiều cao của mỗi ảnh (trước đây là 150px) */
+      object-fit: cover;
+      display: block;
+      border-radius: 6px;
+      transition: transform 0.4s ease, filter 0.4s ease;
+      filter: sepia(0.1) saturate(1.1);
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.1);
+      filter: sepia(0) saturate(1); /* Bỏ bộ lọc khi hover */
+    }
+
+    /* Hiệu ứng overlay khi hover */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      color: white;
+      display: flex;
+      align-items: flex-end; /* Đẩy chữ xuống dưới */
+      padding: 10px;
+      box-sizing: border-box;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      font-size: 0.9em;
+    }
+
+    .gallery-item:hover .overlay {
+      opacity: 1;
+    }
+
+    /* --- TRÌNH XEM ẢNH (MODAL) --- */
+    .modal {
+      display: none; /* Mặc định ẩn */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      max-width: 90%;
+      max-height: 80%;
+      animation: zoom-in 0.5s forwards;
+    }
+
+    #modalCaption {
+      text-align: center;
+      color: #ccc;
+      padding: 15px 0;
+      font-size: 1.2em;
+    }
+
+    .close-button {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #fff;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close-button:hover {
+      color: #bbb;
+    }
+
+    .back-button {
+      background-color: var(--secondary-color);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1.1em;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4);
+    }
+
+    .back-button:hover {
+      background-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(225, 30, 99, 0.5);
+    }
+
+    .youtube-player-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden; opacity: 0;
+      z-index: -1;
+    }
+
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoom-in {
+      from { transform: scale(0.5); }
+      to { transform: scale(1); }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="album-container">
+  <h1>Những Hình Ảnh Của Chị &#10084;</h1>
+  <p class="subtitle">Những bức ảnh của chị</p>
+
+  <div class="gallery">
+    <div class="gallery-item">
+    <img th:src="@{/img/anh1.jpg}" alt="Kỷ niệm 1">
+    <div class="overlay">Kỷ niệm 1</div>
+  </div>
+    <div class="gallery-item">
+      <img th:src="@{/img/anh3.jpg}" alt="Kỷ niệm 2">
+      <div class="overlay">Kỷ niệm 2</div>
+    </div>
+    <div class="gallery-item">
+      <img th:src="@{/img/anh4.jpg}" alt="Kỷ niệm 2">
+      <div class="overlay">Kỷ niệm 2</div>
+    </div>
+  </div>
+
+  <a th:href="@{/gui-chi}" class="back-button">Quay lại trang thư</a>
+</div>
+
+<div class="youtube-player-hidden">
+  <iframe src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk&controls=0" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+</div>
+
+<div id="imageModal" class="modal">
+  <span class="close-button">&times;</span>
+  <img class="modal-content" id="modalImage">
+  <div id="modalCaption"></div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Lấy các phần tử cần thiết cho modal
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalCaption = document.getElementById('modalCaption');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const closeButton = document.querySelector('.close-button');
+
+    // Thêm sự kiện click cho mỗi ảnh trong gallery
+    galleryItems.forEach(item => {
+      item.addEventListener('click', function() {
+        modal.style.display = "flex"; // Hiện modal
+        const img = this.querySelector('img');
+        modalImage.src = img.src; // Lấy link ảnh
+        modalCaption.textContent = img.alt; // Lấy mô tả từ alt
+      });
+    });
+
+    // Hàm để đóng modal
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    // Thêm sự kiện click cho nút đóng
+    closeButton.addEventListener('click', closeModal);
+
+    // Thêm sự kiện click vào nền đen để đóng modal
+    modal.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Thêm sự kiện nhấn phím Escape để đóng modal
+    document.addEventListener('keydown', function(event) {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

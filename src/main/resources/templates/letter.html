@@ -186,6 +186,30 @@
         }
         #statusMessage.success { background-color: #dff0d8; color: #3c763d; }
         #statusMessage.error { background-color: #f2dede; color: #a94442; }
+        .memories-link {
+            margin-top: 30px;
+            padding-bottom: 30px; /* Thêm khoảng cách dưới nút */
+            animation: fade-in-up 0.8s 0.9s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+        .memory-button {
+            background-color: transparent;
+            color: #c2185b;
+            border: 2px solid #c2185b;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .memory-button:hover {
+            background-color: #c2185b;
+            color: white;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -195,7 +219,9 @@
     <h1>Gửi chị, <span th:text="${tenNguoiNhan}"></span>!</h1>
     <p class="message" th:utext="${loiNhanYeuThuong}"></p>
     <p class="signature">Thân thương,<br><span th:text="${tenNguoiGui}"></span></p>
-
+    <div class="memories-link">
+        <a th:href="@{/ky-niem}" class="memory-button">Xem những kỷ niệm của chúng mình &#128149;</a>
+    </div>
     <div class="reply-section">
         <h2>Chị có muốn nhắn lại gì cho em không?</h2>
         <form id="replyForm" th:action="@{/gui-chi}" method="post" enctype="multipart/form-data">

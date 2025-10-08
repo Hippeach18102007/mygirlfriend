@@ -22,7 +22,7 @@ public class MessageController {
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
     private final String loiNhan = "Day 1: Dùng APP. " +
-            "Chào chị iuuuuuu của bé, quả làm tin nhắn gửi khó khăn quá:))). Nhưng em vẫn đang tìm cách. Chị iu học xong nhớ ăn trưa đó.";
+            "Chào tềnh yêu của em. Đi làm việc mệt lắm khum ạ. Tắm rửa rùi ăn uống đi nha, ăn gà rán nhớ mời em:))). Sau đó thì chúc chị ngủ ngoannnnn nha. Bé yêu chị Loan lắmmmmmm ạ!";
 
     @Value("${spring.mail.username}")
     private String myEmail;
@@ -59,5 +59,9 @@ public class MessageController {
     @GetMapping("/ky-niem")
     public String showAlbumPage() {
         return "ky-niem"; // Trả về file ky-niem.html trong thư mục templates
+    }
+    @GetMapping("/nghe-nhac")
+    public String showMusicPage() {
+        return "nhac"; // Trả về file nhac.html
     }
 }

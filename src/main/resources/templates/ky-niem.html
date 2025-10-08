@@ -205,7 +205,16 @@
       from { transform: scale(0.5); }
       to { transform: scale(1); }
     }
-
+    .navigation-links {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    .nav-button { /* Thay thế .back-button */
+      /* ... giữ nguyên các thuộc tính cũ của .back-button ... */
+      background-color: var(--secondary-color);
+      color: white; /* ... */
+    }
   </style>
 </head>
 <body>
@@ -231,6 +240,11 @@
 
   <a th:href="@{/gui-chi}" class="back-button">Quay lại trang thư</a>
 </div>
+<div class="navigation-links">
+  <a th:href="@{/gui-chi}" class="nav-button">Quay lại trang thư</a>
+  <a th:href="@{/nghe-nhac}" class="nav-button">Nghe nhạc 🎶</a>
+</div>
+
 
 <div class="youtube-player-hidden">
   <iframe src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&playlist=jfKfPfyJRdk&controls=0" frameborder="0" allow="autoplay; encrypted-media"></iframe>

@@ -10,24 +10,162 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
 
     <style>
-        body { margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-image: url('https://images.unsplash.com/photo-1502673530728-f79b41d2b5ea?q=80&w=2070&auto-format&fit=crop'); background-repeat: no-repeat; background-position: center center; background-size: cover; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-        .letter-container { background-color: rgba(255, 255, 255, 0.9); padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); max-width: 600px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2); animation: pop-up 1s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        h1, h2 { font-family: 'Playfair Display', serif; }
-        h1 { font-size: 2.5em; color: #c2185b; margin-bottom: 20px; }
-        h2 { color: #555; font-size: 1.5em; }
-        .message { font-size: 1.1em; line-height: 1.8; color: #333; text-align: left; margin-bottom: 30px; }
-        .signature { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3em; color: #555; text-align: right; margin-top: 20px; }
-        .heart { font-size: 3em; color: #e91e63; animation: beat 1.5s infinite; }
-        @keyframes pop-up { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        /* ----- CÀI ĐẶT CHUNG ----- */
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image:
+                /* Lớp phủ màu gradient */
+                    linear-gradient(to top, rgba(194, 24, 91, 0.2), rgba(0, 0, 0, 0.5)),
+                        /* Ảnh nền của bạn */
+                    url('https://images.unsplash.com/photo-1502673530728-f79b41d2b5ea?q=80&w=2070&auto-format&fit=crop');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            /* Dòng overflow: hidden; đã được xóa ở đây */
+        }
 
-        .reply-section { margin-top: 40px; border-top: 1px dashed #ccc; padding-top: 30px; }
-        textarea { width: 100%; min-height: 100px; padding: 15px; font-family: 'Quicksand', sans-serif; font-size: 1em; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; box-sizing: border-box; }
-        button { background-color: #e91e63; color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 15px; transition: all 0.3s; }
-        button:hover { background-color: #c2185b; transform: scale(1.05); }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        /* ----- KHUNG THƯ ----- */
+        .letter-container {
+            background-color: #faf6f0; /* Màu giấy cũ ấm áp */
+            padding: 40px 50px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); /* Shadow sâu và mềm hơn */
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-        /* Kiểu cho input file */
+        /* ----- FONT CHỮ ----- */
+        h1, h2, .signature {
+            font-family: 'Playfair Display', serif;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #c2185b;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #555;
+            font-size: 1.5em;
+        }
+        .message {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #333;
+            text-align: left;
+            margin-bottom: 30px;
+        }
+        .signature {
+            font-style: italic;
+            font-size: 1.3em;
+            color: #555;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        /* ----- HIỆU ỨNG MỚI ----- */
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .letter-container {
+            animation: fade-in-up 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .heart {
+            animation: beat 1.5s infinite, fade-in-up 0.8s 0.2s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+        h1 {
+            animation: fade-in-up 0.8s 0.4s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+        .message {
+            animation: fade-in-up 0.8s 0.6s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+        .signature {
+            animation: fade-in-up 0.8s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+        .reply-section {
+            animation: fade-in-up 0.8s 1s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+
+        .heart {
+            font-size: 3em;
+            color: #e91e63;
+        }
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* ----- PHẦN TRẢ LỜI ----- */
+        .reply-section {
+            margin-top: 40px;
+            border-top: 1px dashed #ccc;
+            padding-top: 30px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            box-sizing: border-box;
+            transition: box-shadow 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #c2185b;
+            box-shadow: 0 0 10px rgba(225, 30, 99, 0.2);
+        }
+        button {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4);
+        }
+        button:hover {
+            background-color: #c2185b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(225, 30, 99, 0.5);
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
         input[type="file"] {
             margin-top: 15px;
             border: 1px dashed #c2185b;
@@ -36,15 +174,15 @@
             width: 100%;
             box-sizing: border-box;
             background-color: #fff0f5;
+            cursor: pointer;
         }
 
-        /* Kiểu cho thông báo trạng thái */
         #statusMessage {
             margin-top: 15px;
             padding: 10px;
             border-radius: 5px;
             font-weight: bold;
-            display: none; /* Mặc định ẩn */
+            display: none;
         }
         #statusMessage.success { background-color: #dff0d8; color: #3c763d; }
         #statusMessage.error { background-color: #f2dede; color: #a94442; }
@@ -63,7 +201,7 @@
         <form id="replyForm" th:action="@{/gui-chi}" method="post" enctype="multipart/form-data">
             <textarea name="reply_message" placeholder="Viết lời nhắn của chị ở đây..." required></textarea>
             <input type="file" name="imageFile" accept="image/*">
-            <button id="submitButton" type="submit">Gửi cho em</button>
+            <button id="submitButton" type="submit">&#10084; Gửi cho em</button>
         </form>
         <div id="statusMessage"></div>
     </div>
@@ -76,51 +214,38 @@
         const submitButton = document.getElementById('submitButton');
 
         form.addEventListener('submit', function(event) {
-            // Ngăn form gửi theo cách truyền thống (tải lại trang)
             event.preventDefault();
-
-            // Vô hiệu hóa nút gửi để tránh spam click
             submitButton.disabled = true;
             submitButton.textContent = 'Đang gửi...';
 
-            // Tạo đối tượng FormData để thu thập dữ liệu form, bao gồm cả file
             const formData = new FormData(form);
 
-            // Gửi dữ liệu bằng fetch API (AJAX)
             fetch(form.action, {
                 method: 'POST',
                 body: formData
             })
                 .then(response => {
                     if (!response.ok) {
-                        // Nếu server trả về lỗi, ném ra lỗi để .catch() xử lý
-                        return response.text().then(text => { throw new Error(text) });
+                        return response.text().then(text => {
+                            throw new Error(text || 'Đã có lỗi xảy ra phía server.');
+                        });
                     }
-                    return response.text(); // Lấy nội dung text từ response thành công
+                    return response.text();
                 })
                 .then(successMessage => {
-                    // Xử lý khi gửi thành công
                     statusMessage.textContent = successMessage;
                     statusMessage.className = 'success';
                     statusMessage.style.display = 'block';
-
-                    form.reset(); // Xóa nội dung đã nhập trong form để viết tiếp
-
-                    // Ẩn thông báo sau 3 giây
-                    setTimeout(() => {
-                        statusMessage.style.display = 'none';
-                    }, 3000);
+                    form.reset();
                 })
                 .catch(error => {
-                    // Xử lý khi có lỗi
                     statusMessage.textContent = 'Lỗi: ' + error.message;
                     statusMessage.className = 'error';
                     statusMessage.style.display = 'block';
                 })
                 .finally(() => {
-                    // Luôn luôn kích hoạt lại nút gửi sau khi hoàn tất
                     submitButton.disabled = false;
-                    submitButton.textContent = 'Gửi cho em';
+                    submitButton.innerHTML = '&#10084; Gửi cho em';
                 });
         });
     });

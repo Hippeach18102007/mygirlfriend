@@ -21,8 +21,8 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Day 1: Dùng APP. " +
-            "Chào tềnh yêu của em. Đi làm việc mệt lắm khum ạ. Tắm rửa rùi ăn uống đi nha, ăn gà rán nhớ mời em:))). Sau đó thì chúc chị ngủ ngoannnnn nha. Bé yêu chị Loan lắmmmmmm ạ!";
+    private final String loiNhan = "Day 2: Dùng APP. " +
+            "Chào chị, sáng nay em chỉ muốn chúc chị ngày mới vui vẻ thôi. Khi nào cảm thấy thoải mái thì nhắn tin với em nhé. Em nhớ chị lắm. Tối qua em hơi nặng lời, em xin lỗi ạ:(.";
 
     @Value("${spring.mail.username}")
     private String myEmail;

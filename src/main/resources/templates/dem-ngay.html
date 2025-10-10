@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hành Trình Tình Yêu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #f06292; }
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            justify-content: center; align-items: center; min-height: 100vh;
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1525923838299-2312b694296c?q=80&w=1974&auto=format&fit=crop');
+            background-repeat: no-repeat; background-position: center center; background-size: cover;
+            color: white; text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.5); padding: 50px; border-radius: 20px;
+            box-shadow: 0 0 40px rgba(240, 98, 146, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            animation: fade-in-up 1s forwards;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: 2.8em; margin: 0;
+            color: var(--primary-color); text-shadow: 0 0 15px var(--primary-color);
+        }
+        .subtitle { font-size: 1.1em; color: #eee; margin-bottom: 40px; }
+        .countdown-container {
+            display: flex; justify-content: center; gap: 20px;
+        }
+        .time-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px; border-radius: 10px; min-width: 90px;
+        }
+        .time-box span {
+            display: block;
+        }
+        .time-box .number {
+            font-size: 3em; font-weight: bold;
+        }
+        .time-box .label {
+            font-size: 1em; text-transform: uppercase;
+        }
+        .navigation-links { display: flex; justify-content: center; gap: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 40px; margin-top: 40px;}
+        .nav-button {
+            background-color: transparent; color: white; border: 1px solid white; padding: 10px 20px;
+            font-size: 0.9em; font-weight: bold; border-radius: 50px; cursor: pointer;
+            text-decoration: none; transition: all 0.3s;
+        }
+        .nav-button:hover { background-color: white; color: black; }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Hành Trình Tình Yêu Của Chúng Mình ❤️</h1>
+    <p class="subtitle" id="startDateText">Bắt đầu từ ngày 24 tháng 09</p>
+    <div class="countdown-container">
+        <div class="time-box">
+            <span id="days" class="number">0</span>
+            <span class="label">Ngày</span>
+        </div>
+        <div class="time-box">
+            <span id="hours" class="number">0</span>
+            <span class="label">Giờ</span>
+        </div>
+        <div class="time-box">
+            <span id="minutes" class="number">0</span>
+            <span class="label">Phút</span>
+        </div>
+        <div class="time-box">
+            <span id="seconds" class="number">0</span>
+            <span class="label">Giây</span>
+        </div>
+    </div>
+    <div class="navigation-links">
+        <a th:href="@{/gui-chi}" class="nav-button">Trang Thư</a>
+        <a th:href="@{/ky-niem}" class="nav-button">Xem Kỷ Niệm</a>
+        <a th:href="@{/nghe-nhac}" class="nav-button">Nghe Nhạc</a>
+    </div>
+</div>
+
+<script>
+    // --- THAY ĐỔI NGÀY KỶ NIỆM CỦA BẠN TẠI ĐÂY ---
+    // Định dạng: 'NĂM-THÁNG-NGÀYTGIỜ:PHÚT:GIÂY'
+    const startDate = new Date('2025-09-24T00:00:00');
+    // ---------------------------------------------
+
+    // Cập nhật lại dòng chữ cho đúng năm
+    document.getElementById('startDateText').textContent = `Bắt đầu từ ngày ${startDate.getDate()} tháng ${startDate.getMonth() + 1} năm ${startDate.getFullYear()}`;
+
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+
+    function formatTime(time) {
+        return time < 10 ? `0${time}` : time;
+    }
+
+    function updateCounter() {
+        const now = new Date();
+        const diff = now - startDate; // Khoảng cách thời gian bằng mili-giây
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        daysEl.textContent = days;
+        hoursEl.textContent = formatTime(hours);
+        minutesEl.textContent = formatTime(minutes);
+        secondsEl.textContent = formatTime(seconds);
+    }
+
+    // Chạy hàm cập nhật mỗi giây
+    setInterval(updateCounter, 1000);
+    // Chạy ngay lần đầu để không bị trễ 1 giây
+    updateCounter();
+</script>
+
+</body>
+</html>

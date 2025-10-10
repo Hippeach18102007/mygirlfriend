@@ -122,7 +122,14 @@
       transition: opacity 0.4s ease;
       font-size: 0.9em;
     }
-
+    .navigation-links {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 30px;
+      flex-wrap: wrap; /* Cho phép xuống dòng */
+    }
     .gallery-item:hover .overlay {
       opacity: 1;
     }
@@ -241,8 +248,10 @@
   <a th:href="@{/gui-chi}" class="back-button">Quay lại trang thư</a>
 </div>
 <div class="navigation-links">
-  <a th:href="@{/gui-chi}" class="nav-button">Quay lại trang thư</a>
-  <a th:href="@{/nghe-nhac}" class="nav-button">Nghe nhạc 🎶</a>
+  <a th:href="@{/gui-chi}" class="nav-button">Trang Thư</a>
+  <a th:href="@{/dem-ngay}" class="nav-button">Đếm Ngày Yêu</a>
+  <a th:href="@{/ky-niem}" class="nav-button">Xem Kỷ Niệm</a>
+  <a th:href="@{/nghe-nhac}" class="nav-button">Nghe Nhạc</a>
 </div>
 
 

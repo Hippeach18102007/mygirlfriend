@@ -48,6 +48,50 @@
             justify-content: center;
             gap: 15px;
         }
+        /* --- CSS CHO PHẦN LÝ DO YÊU THƯƠNG --- */
+        .reasons-section {
+            text-align: center;
+            margin-top: 40px;
+            padding: 30px 0;
+            border-top: 1px dashed #ccc;
+            border-bottom: 1px dashed #ccc;
+            animation: fade-in-up 0.8s 1s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+        }
+
+        #reason-button {
+            background-color: var(--secondary-color, #e91e63);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4);
+        }
+
+        #reason-button:hover {
+            background-color: var(--primary-color, #c2185b);
+            transform: scale(1.05);
+        }
+
+        #reason-display {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.4em;
+            color: #333;
+            min-height: 50px; /* Giữ chiều cao ổn định */
+            transition: opacity 0.5s;
+        }
+
+        /* Hiệu ứng mờ dần khi đổi chữ */
+        #reason-display.fade {
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -57,12 +101,13 @@
     <h1>Gửi chị, <span th:text="${tenNguoiNhan}"></span>!</h1>
     <p class="message" th:utext="${loiNhanYeuThuong}"></p>
     <p class="signature">Thân thương,<br><span th:text="${tenNguoiGui}"></span></p>
-    <div class="memories-link">
-        <a th:href="@{/ky-niem}" class="memory-button">Xem những kỷ niệm của chúng mình &#128149;</a>
+    <div class="reasons-section">
+        <button id="reason-button">Nhấn vào đây đi chị!</button>
+        <p id="reason-display">Mỗi lần nhấn là một bất ngờ đó 😊</p>
     </div>
     <div class="memories-link">
         <a th:href="@{/dem-ngay}" class="memory-button">Đếm Ngày Yêu 💖</a>
-        <a th:href="@{/ky-niem}" class="memory-button">Xem kỷ niệm &#128149;</a>
+        <a th:href="@{/ky-niem}" class="memory-button">Xem những kỷ niệm của chúng mình &#128149;</a>
         <a th:href="@{/nghe-nhac}" class="memory-button">Nghe nhạc 🎶</a>
     </div>
     <div class="reply-section">
@@ -80,69 +125,111 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    // --- Code xử lý gửi form ---
+    // --- PHẦN TOÀN CỤC CHO YOUTUBE PLAYER ---
+    let player;
+    let isMuted = true;
+    let isPlayerStarted = false;
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('youtube-player');
+    }
+    // -----------------------------------------
+
+
+    // --- PHẦN XỬ LÝ CHÍNH KHI TRANG TẢI XONG ---
     document.addEventListener("DOMContentLoaded", function() {
-        // ... (phần code này giữ nguyên)
+
+        // --- 1. Code xử lý gửi form ---
         const form = document.getElementById('replyForm');
         const statusMessage = document.getElementById('statusMessage');
         const submitButton = document.getElementById('submitButton');
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            submitButton.disabled = true;
-            submitButton.textContent = 'Đang gửi...';
-            const formData = new FormData(form);
-            fetch(form.action, { method: 'POST', body: formData })
-                .then(response => {
-                    if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Đã có lỗi xảy ra.'); }); }
-                    return response.text();
-                })
-                .then(successMessage => {
-                    statusMessage.textContent = successMessage;
-                    statusMessage.className = 'success';
-                    statusMessage.style.display = 'block';
-                    form.reset();
-                })
-                .catch(error => {
-                    statusMessage.textContent = 'Lỗi: ' + error.message;
-                    statusMessage.className = 'error';
-                    statusMessage.style.display = 'block';
-                })
-                .finally(() => {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '&#10084; Gửi cho em';
-                });
-        });
-    });
 
-    // --- SCRIPT MỚI CHO YOUTUBE PLAYER ---
-    let player;
-    let isMuted = true;
-    let isPlayerStarted = false; // Biến cờ để kiểm tra xem player đã chạy lần nào chưa
-    const volumeButton = document.getElementById('volume-toggle');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                submitButton.disabled = true;
+                submitButton.textContent = 'Đang gửi...';
+                const formData = new FormData(form);
+                fetch(form.action, { method: 'POST', body: formData })
+                    .then(response => {
+                        if (!response.ok) { return response.text().then(text => { throw new Error(text || 'Đã có lỗi xảy ra.'); }); }
+                        return response.text();
+                    })
+                    .then(successMessage => {
+                        statusMessage.textContent = successMessage;
+                        statusMessage.className = 'success';
+                        statusMessage.style.display = 'block';
+                        form.reset();
+                    })
+                    .catch(error => {
+                        statusMessage.textContent = 'Lỗi: ' + error.message;
+                        statusMessage.className = 'error';
+                        statusMessage.style.display = 'block';
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '&#10084; Gửi cho em';
+                    });
+            });
+        }
 
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('youtube-player'); // Không cần event 'onReady' nữa
-    }
+        // --- 2. Code cho chức năng "Lý do yêu thương" ---
+        const reasonButton = document.getElementById('reason-button');
+        const reasonDisplay = document.getElementById('reason-display');
 
-    volumeButton.addEventListener('click', function() {
-        // Nếu đây là lần click đầu tiên
-        if (!isPlayerStarted) {
-            player.playVideo(); // Bắt đầu phát video
-            player.unMute(); // Bật tiếng
-            volumeButton.textContent = '🔊';
-            isMuted = false;
-            isPlayerStarted = true; // Đánh dấu là đã chạy
-        } else {
-            // Cho những lần click sau (chỉ bật/tắt tiếng)
-            if (isMuted) {
-                player.unMute();
-                volumeButton.textContent = '🔊';
-                isMuted = false;
-            } else {
-                player.mute();
-                volumeButton.textContent = '🔇';
-                isMuted = true;
-            }
+        if (reasonButton) {
+            const reasons = [
+                "Em yêu chị Vì nụ cười của chị làm em vui cả ngày.",
+                "Em yêu chị Vì chị luôn ở bên cạnh em những lúc khó khăn.",
+                "Em yêu chị Vì cách chị quan tâm đến em thật đặc biệt.",
+                "Em yêu chị Vì chị là người con gái tuyệt vời nhất em từng gặp.",
+                "Em yêu chị Vì ánh mắt của chị luôn làm em xao xuyến.",
+                "Em yêu chị Vì chị luôn tin tưởng và ủng hộ em.",
+                "Em yêu chị Vì mỗi ngày ở bên chị đều là một ngày hạnh phúc.",
+                "Em yêu chị Vì đơn giản hơn vì đó là chị người con gái em thương.",
+                "EM yêu chị Vì yêu đơn giản là vì yêu thôi ❤️. Và đơn giản hơn nữa vì đó là chị người con gái em thương.",
+            ];
+
+            // === PHẦN MỚI THÊM VÀO: TỰ ĐỘNG HIỂN THỊ LÝ DO KHI TẢI TRANG ===
+            const initialIndex = Math.floor(Math.random() * reasons.length);
+            reasonDisplay.textContent = reasons[initialIndex];
+            // ================================================================
+
+            reasonButton.addEventListener('click', function() {
+                reasonDisplay.classList.add('fade');
+                setTimeout(function() {
+                    const randomIndex = Math.floor(Math.random() * reasons.length);
+                    reasonDisplay.textContent = reasons[randomIndex];
+                    reasonDisplay.classList.remove('fade');
+                }, 500);
+            });
+        }
+
+        // --- 3. Code cho nút điều khiển YouTube Player ---
+        const volumeButton = document.getElementById('volume-toggle');
+        if (volumeButton) {
+            volumeButton.addEventListener('click', function() {
+                if (!player || typeof player.playVideo !== 'function') {
+                    return;
+                }
+                if (!isPlayerStarted) {
+                    player.playVideo();
+                    player.unMute();
+                    volumeButton.textContent = '🔊';
+                    isMuted = false;
+                    isPlayerStarted = true;
+                } else {
+                    if (isMuted) {
+                        player.unMute();
+                        volumeButton.textContent = '🔊';
+                        isMuted = false;
+                    } else {
+                        player.mute();
+                        volumeButton.textContent = '🔇';
+                        isMuted = true;
+                    }
+                }
+            });
         }
     });
 </script>

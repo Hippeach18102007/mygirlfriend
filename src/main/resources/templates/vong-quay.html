@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng Quay Yêu Thương</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+            background: #1a001a;
+            color: white; text-align: center;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: 3em; color: #f48fb1;
+            text-shadow: 0 0 5px #fff, 0 0 10px #f48fb1, 0 0 20px #f48fb1, 0 0 30px #f48fb1;
+            animation: pulse-text 4s infinite alternate; margin-bottom: 20px;
+        }
+        .wheel-container { position: relative; width: 450px; height: 450px; max-width: 90vw; max-height: 90vw; }
+        #canvas { width: 100%; height: 100%; transition: transform 0.5s ease-out; }
+        .pointer {
+            position: absolute; top: -20px; left: 50%;
+            transform: translateX(-50%); width: 60px; height: 80px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 125"><path fill="%23FFD700" d="M50 0L100 60H0z"/><path fill="%23FFA500" d="M50 0L100 60H50z"/></svg>');
+            background-size: contain; background-repeat: no-repeat;
+        }
+        #spin-button {
+            margin-top: 30px; background: none; border: none;
+            font-size: 80px; cursor: pointer; transition: transform 0.3s;
+            animation: bounce-gift 2s infinite ease-in-out;
+        }
+        #spin-button:hover { transform: scale(1.2); }
+        #spin-button:disabled { cursor: not-allowed; animation: none; filter: grayscale(80%); }
+        .navigation-links { display: flex; justify-content: center; gap: 15px; margin-top: 50px; flex-wrap: wrap; }
+        .nav-button { background-color: transparent; color: white; border: 1px solid white; padding: 10px 20px; font-size: 0.9em; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .nav-button:hover { background-color: white; color: black; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: linear-gradient(145deg, #4a148c, #880e4f); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid #f48fb1; box-shadow: 0 0 30px #f48fb1; width: 90%; max-width: 400px; animation: zoom-in 0.5s forwards; }
+        .modal h2 { font-family: 'Playfair Display', serif; font-size: 2em; margin-top: 0; color: #fff; }
+        .prize-text { font-size: 1.5em; font-weight: bold; color: #ffd700; margin: 20px 0; }
+        #close-modal { margin-top: 20px; background-color: #f48fb1; color: black; border: none; padding: 12px 30px; border-radius: 50px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        #close-modal:hover { transform: scale(1.1); }
+
+        #particles-js { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; }
+
+        @keyframes pulse-text { from { text-shadow: 0 0 5px #fff, 0 0 10px #f48fb1, 0 0 20px #f48fb1; } to { text-shadow: 0 0 10px #fff, 0 0 20px #f48fb1, 0 0 40px #f48fb1; } }
+        @keyframes bounce-gift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes zoom-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="particles-js"></div>
+
+<h1>Vòng Quay Yêu Thương 🎁</h1>
+<div class="wheel-container">
+    <div class="pointer"></div>
+    <canvas id="canvas" width="450" height="450"></canvas>
+</div>
+<button id="spin-button">🎁</button>
+
+<div class="navigation-links">
+    <a th:href="@{/gui-chi}" class="nav-button">Trang Thư</a>
+    <a th:href="@{/dem-ngay}" class="nav-button">Đếm Ngày Yêu</a>
+    <a th:href="@{/ky-niem}" class="nav-button">Xem Kỷ Niệm</a>
+    <a th:href="@{/nghe-nhac}" class="nav-button">Nghe Nhạc</a>
+</div>
+
+<div id="prizeModal" class="modal">
+    <div class="modal-content">
+        <h2>Chúc mừng chị!</h2>
+        <p>Phần thưởng 20-10 của chị là:</p>
+        <p id="prizeResult" class="prize-text"></p>
+        <button id="close-modal">Tuyệt vời!</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/winwheeljs/dist/Winwheel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<script>
+    // SỬA LỖI Ở ĐÂY: BỌC TOÀN BỘ CODE VÀO TRONG DOMCONTENTLOADED
+    document.addEventListener('DOMContentLoaded', function() {
+        const prizes = [
+            {'fillStyle': '#6a1b9a', 'text': 'Một chuyến xem phim'},
+            {'fillStyle': '#ad1457', 'text': 'Một bữa tối em nấu'},
+            {'fillStyle': '#1565c0', 'text': '10 cái ôm thật chặt'},
+            {'fillStyle': '#00695c', 'text': 'Một cây son mới'},
+            {'fillStyle': '#558b2f', 'text': 'Đi dạo Hồ Tây'},
+            {'fillStyle': '#ef6c00', 'text': 'Cả ngày không cáu'},
+            {'fillStyle': '#d84315', 'text': 'Một ly trà sữa'},
+            {'fillStyle': '#4e342e', 'text': 'Mát-xa cho chị'}
+        ];
+
+        let theWheel = new Winwheel({
+            'numSegments': prizes.length,
+            'outerRadius': 210,
+            'innerRadius': 40,
+            'textFontSize': 18,
+            'textFontFamily': 'Quicksand',
+            'segments': prizes,
+            'animation': {
+                'type': 'spinToStop',
+                'duration': 10,
+                'spins': 12,
+                'callbackFinished': showPrizePopup,
+            }
+        });
+
+        const spinButton = document.getElementById('spin-button');
+        const prizeModal = document.getElementById('prizeModal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const prizeResult = document.getElementById('prizeResult');
+
+        spinButton.addEventListener('click', () => {
+            theWheel.startAnimation();
+            spinButton.disabled = true;
+        });
+
+        function showPrizePopup(indicatedSegment) {
+            const prizeText = indicatedSegment.text;
+            prizeResult.textContent = prizeText;
+            prizeModal.style.display = 'flex';
+            sendEmailNotification(prizeText);
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            prizeModal.style.display = 'none';
+            spinButton.disabled = false;
+            theWheel.stopAnimation(false);
+            theWheel.rotationAngle = 0;
+            theWheel.draw();
+        });
+
+        async function sendEmailNotification(prize) {
+            try {
+                const response = await fetch('/vong-quay/thong-bao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 'prize': prize })
+                });
+                if (response.ok) {
+                    console.log('Email thông báo đã được gửi thành công!');
+                } else {
+                    console.error('Gửi email thất bại.');
+                }
+            } catch (error) {
+                console.error('Lỗi khi gửi request:', error);
+            }
+        }
+
+        particlesJS('particles-js', {
+            "particles": {"number": {"value": 80, "density": {"enable": true, "value_area": 800}}, "color": {"value": "#ffffff"}, "shape": {"type": "star", "stroke": {"width": 0, "color": "#000000"}, "polygon": {"nb_sides": 5}}, "opacity": {"value": 0.5, "random": true, "anim": {"enable": true, "speed": 1, "opacity_min": 0.1, "sync": false}}, "size": {"value": 3, "random": true, "anim": {"enable": false, "speed": 40, "size_min": 0.1, "sync": false}}, "line_linked": {"enable": false}, "move": {"enable": true, "speed": 1, "direction": "top", "random": true, "straight": false, "out_mode": "out", "bounce": false}},
+            "interactivity": {"detect_on": "canvas", "events": {"onhover": {"enable": false}, "onclick": {"enable": false}}, "modes": {}}, "retina_detect": true
+        });
+    });
+</script>
+</body>
+</html>

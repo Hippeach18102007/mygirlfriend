@@ -10,88 +10,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
 
     <style>
-        /* ... Toàn bộ CSS cũ của bạn giữ nguyên ... */
+        :root {
+            --primary-color: #c2185b;
+            --secondary-color: #e91e63;
+        }
         body { margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-image: linear-gradient(to top, rgba(194, 24, 91, 0.2), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1502673530728-f79b41d2b5ea?q=80&w=2070&auto-format&fit=crop'); background-repeat: no-repeat; background-position: center center; background-size: cover; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
         .letter-container { background-color: #faf6f0; padding: 40px 50px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); max-width: 600px; width: 90%; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2); }
         h1, h2, .signature { font-family: 'Playfair Display', serif; }
-        h1 { font-size: 2.5em; color: #c2185b; margin-bottom: 20px; }
+        h1 { font-size: 2.5em; color: var(--primary-color); margin-bottom: 20px; }
         h2 { color: #555; font-size: 1.5em; }
         .message { font-size: 1.1em; line-height: 1.8; color: #333; text-align: left; margin-bottom: 30px; }
         .signature { font-style: italic; font-size: 1.3em; color: #555; text-align: right; margin-top: 20px; }
+
         @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .letter-container { animation: fade-in-up 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1); }
         .heart { animation: beat 1.5s infinite, fade-in-up 0.8s 0.2s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
         h1 { animation: fade-in-up 0.8s 0.4s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
         .message { animation: fade-in-up 0.8s 0.6s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
         .signature { animation: fade-in-up 0.8s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
+        .reasons-section { animation: fade-in-up 0.8s 0.9s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
+        .memories-link { animation: fade-in-up 0.8s 1.0s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
         .reply-section { animation: fade-in-up 0.8s 1.1s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
-        .heart { font-size: 3em; color: #e91e63; }
+
+        .heart { font-size: 3em; color: var(--secondary-color); }
         @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-        .memories-link { margin-top: 30px; padding-bottom: 30px; animation: fade-in-up 0.8s 0.9s forwards cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
-        .memory-button { background-color: transparent; color: #c2185b; border: 2px solid #c2185b; padding: 10px 20px; font-size: 1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
-        .memory-button:hover { background-color: #c2185b; color: white; transform: scale(1.05); }
-        .reply-section { margin-top: 40px; border-top: 1px dashed #ccc; padding-top: 30px; }
+
+        .reasons-section { text-align: center; margin-top: 40px; padding: 30px 0; border-top: 1px dashed #ccc; border-bottom: 1px dashed #ccc; }
+        #reason-button { background-color: var(--secondary-color); color: white; border: none; padding: 15px 30px; font-size: 1.1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; margin-bottom: 20px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4); }
+        #reason-button:hover { background-color: var(--primary-color); transform: scale(1.05); }
+        #reason-display { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4em; color: #333; min-height: 50px; transition: opacity 0.5s; }
+        #reason-display.fade { opacity: 0; }
+
+        .memories-link { display: flex; justify-content: center; gap: 10px; margin-top: 30px; padding-bottom: 30px; flex-wrap: wrap; }
+        .memory-button { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 10px 20px; font-size: 1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .memory-button:hover { background-color: var(--primary-color); color: white; transform: scale(1.05); }
+
+        .reply-section { margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 30px; }
         textarea { width: 100%; min-height: 100px; padding: 15px; font-family: 'Quicksand', sans-serif; font-size: 1em; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; box-sizing: border-box; transition: box-shadow 0.3s; }
-        textarea:focus { outline: none; border-color: #c2185b; box-shadow: 0 0 10px rgba(225, 30, 99, 0.2); }
-        button { background-color: #e91e63; color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 15px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4); }
-        button:hover { background-color: #c2185b; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(225, 30, 99, 0.5); }
-        button:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
-        input[type="file"] { margin-top: 15px; border: 1px dashed #c2185b; padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; background-color: #fff0f5; cursor: pointer; }
+        textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 10px rgba(225, 30, 99, 0.2); }
+        #submitButton { background-color: var(--secondary-color); color: white; border: none; padding: 12px 25px; font-size: 1.1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 15px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4); }
+        #submitButton:hover { background-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(225, 30, 99, 0.5); }
+        #submitButton:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+        input[type="file"] { margin-top: 15px; border: 1px dashed var(--primary-color); padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; background-color: #fff0f5; cursor: pointer; }
         #statusMessage { margin-top: 15px; padding: 10px; border-radius: 5px; font-weight: bold; display: none; }
         #statusMessage.success { background-color: #dff0d8; color: #3c763d; }
         #statusMessage.error { background-color: #f2dede; color: #a94442; }
+
         .youtube-player-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; z-index: -1; }
         #volume-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: rgba(0, 0, 0, 0.5); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; z-index: 1001; transition: background-color 0.3s, transform 0.3s; }
-        #volume-toggle:hover { background-color: #e91e63; transform: scale(1.1); }
-        .memories-link {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        /* --- CSS CHO PHẦN LÝ DO YÊU THƯƠNG --- */
-        .reasons-section {
-            text-align: center;
-            margin-top: 40px;
-            padding: 30px 0;
-            border-top: 1px dashed #ccc;
-            border-bottom: 1px dashed #ccc;
-            animation: fade-in-up 0.8s 1s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
-            opacity: 0;
-        }
-
-        #reason-button {
-            background-color: var(--secondary-color, #e91e63);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.1em;
-            font-family: 'Quicksand', sans-serif;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(225, 30, 99, 0.4);
-        }
-
-        #reason-button:hover {
-            background-color: var(--primary-color, #c2185b);
-            transform: scale(1.05);
-        }
-
-        #reason-display {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 1.4em;
-            color: #333;
-            min-height: 50px; /* Giữ chiều cao ổn định */
-            transition: opacity 0.5s;
-        }
-
-        /* Hiệu ứng mờ dần khi đổi chữ */
-        #reason-display.fade {
-            opacity: 0;
-        }
+        #volume-toggle:hover { background-color: var(--secondary-color); transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -101,15 +68,19 @@
     <h1>Gửi chị, <span th:text="${tenNguoiNhan}"></span>!</h1>
     <p class="message" th:utext="${loiNhanYeuThuong}"></p>
     <p class="signature">Thân thương,<br><span th:text="${tenNguoiGui}"></span></p>
+
     <div class="reasons-section">
         <button id="reason-button">Nhấn vào đây đi chị!</button>
         <p id="reason-display">Mỗi lần nhấn là một bất ngờ đó 😊</p>
     </div>
+
     <div class="memories-link">
         <a th:href="@{/dem-ngay}" class="memory-button">Đếm Ngày Yêu 💖</a>
-        <a th:href="@{/ky-niem}" class="memory-button">Xem những kỷ niệm của chúng mình &#128149;</a>
-        <a th:href="@{/nghe-nhac}" class="memory-button">Nghe nhạc 🎶</a>
+        <a th:href="@{/ky-niem}" class="memory-button">Xem Kỷ Niệm &#128149;</a>
+        <a th:href="@{/nghe-nhac}" class="memory-button">Nghe Nhạc 🎶</a>
+        <a th:href="@{/vong-quay}" class="memory-button">Vòng Quay Yêu Thương 🎁</a>
     </div>
+
     <div class="reply-section">
         <h2>Chị có muốn nhắn lại gì cho em không?</h2>
         <form id="replyForm" th:action="@{/gui-chi}" method="post" enctype="multipart/form-data">
@@ -133,13 +104,10 @@
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('youtube-player');
     }
-    // -----------------------------------------
-
 
     // --- PHẦN XỬ LÝ CHÍNH KHI TRANG TẢI XONG ---
     document.addEventListener("DOMContentLoaded", function() {
-
-        // --- 1. Code xử lý gửi form ---
+        // --- Code xử lý gửi form ---
         const form = document.getElementById('replyForm');
         const statusMessage = document.getElementById('statusMessage');
         const submitButton = document.getElementById('submitButton');
@@ -173,7 +141,7 @@
             });
         }
 
-        // --- 2. Code cho chức năng "Lý do yêu thương" ---
+        // --- Code cho chức năng "Lý do yêu thương" ---
         const reasonButton = document.getElementById('reason-button');
         const reasonDisplay = document.getElementById('reason-display');
 
@@ -190,10 +158,8 @@
                 "EM yêu chị Vì yêu đơn giản là vì yêu thôi ❤️. Và đơn giản hơn nữa vì đó là chị người con gái em thương.",
             ];
 
-            // === PHẦN MỚI THÊM VÀO: TỰ ĐỘNG HIỂN THỊ LÝ DO KHI TẢI TRANG ===
             const initialIndex = Math.floor(Math.random() * reasons.length);
             reasonDisplay.textContent = reasons[initialIndex];
-            // ================================================================
 
             reasonButton.addEventListener('click', function() {
                 reasonDisplay.classList.add('fade');
@@ -205,13 +171,11 @@
             });
         }
 
-        // --- 3. Code cho nút điều khiển YouTube Player ---
+        // --- Code cho nút điều khiển YouTube Player ---
         const volumeButton = document.getElementById('volume-toggle');
         if (volumeButton) {
             volumeButton.addEventListener('click', function() {
-                if (!player || typeof player.playVideo !== 'function') {
-                    return;
-                }
+                if (!player || typeof player.playVideo !== 'function') { return; }
                 if (!isPlayerStarted) {
                     player.playVideo();
                     player.unMute();

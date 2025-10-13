@@ -4,6 +4,7 @@ package com.example.ny.Service;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,16 @@ public class EmailService {
 
         } catch (Exception e) {
             // Ném ngoại lệ để Controller có thể bắt và xử lý
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }public void sendSimpleEmail(String to, String subject, String text) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
+            mailSender.send(message); // Giả sử bạn có biến mailSender đã được tiêm
+        } catch (Exception e) {
             throw new RuntimeException("Failed to send email", e);
         }
     }

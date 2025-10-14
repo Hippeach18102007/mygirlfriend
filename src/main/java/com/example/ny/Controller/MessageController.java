@@ -20,8 +20,8 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Day 6: 5 trước khi anh lên làm người lớn:))). " +
-            "Em bé yêu dấu, nay đi làm về mệt khum. Nay được em gọi là chồng mà anh vui cả ngày:)))). Sau phát huy em nhé. Nhưng mà lần sau nói mà không cần cồn trong người điiiiiiiiiii.";
+    private final String loiNhan = "Day 6: 4 ngày trước khi anh lên làm người lớn:))). " +
+            "Tối nay mệt khum em. Nay anh xem tiktok thấy người ta toàn cầu hôn nhau. Nghe bảo giá vàng đang tăng nên đua nhau đi cưới. Không biết khi nào tới lượt mình:))). Khi tương lai mơ hồ đầy ô trống còn người ta địa vị thành công:)))) chết rồi hiệu ứng tóp tóp phải xóa thôi:))) ";
 
     @Value("${spring.mail.username}")
     private String myEmail;
@@ -35,6 +35,10 @@ public class MessageController {
         model.addAttribute("tenNguoiGui", tenEm);
         model.addAttribute("loiNhanYeuThuong", loiNhan);
         return "letter";
+    }
+    @GetMapping("/ghep-hinh")
+    public String showPuzzlePage() {
+        return "ghep-hinh";
     }
 
     // Cập nhật phương thức POST

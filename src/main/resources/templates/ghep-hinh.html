@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghép Hình Kỷ Niệm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #f48fb1; }
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1507272931001-fc06c17e4f43?q=80&w=1974&auto-format&fit=crop');
+            background-repeat: no-repeat; background-position: center center; background-size: cover;
+            color: white; text-align: center;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: 3em; color: var(--primary-color);
+            text-shadow: 0 0 15px var(--primary-color); margin-bottom: 20px;
+        }
+        .puzzle-area { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 40px; }
+        #puzzle-board, #piece-container {
+            width: 450px; height: 450px;
+            max-width: 90vw; max-height: 90vw;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+        }
+        #puzzle-board { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+        .puzzle-slot { width: 33.33%; height: 33.33%; box-sizing: border-box; }
+        .puzzle-piece {
+            width: 33.33%; height: 33.33%;
+            background-image: url('/img/anh2.jpg');
+            background-size: 300% 300%;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .puzzle-piece:hover { box-shadow: 0 0 15px #fff; transform: scale(1.05); }
+        #piece-container { display: flex; flex-wrap: wrap; }
+
+        #success-message {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            justify-content: center; align-items: center; flex-direction: column;
+            animation: zoom-in 0.5s forwards; cursor: pointer;
+        }
+        #success-message > div { cursor: default; }
+        #success-message h2 { font-family: 'Playfair Display', serif; font-size: 3em; color: var(--primary-color); }
+        #success-message p { font-size: 1.5em; }
+
+        /* --- CSS CHO NÚT ĐÓNG MỚI --- */
+        #close-success-btn {
+            margin-top: 30px;
+            background-color: var(--primary-color);
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #close-success-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .navigation-links { display: flex; justify-content: center; gap: 15px; margin-top: 50px; flex-wrap: wrap; }
+        .nav-button { background-color: transparent; color: white; border: 1px solid white; padding: 10px 20px; font-size: 0.9em; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .nav-button:hover { background-color: white; color: black; }
+        @keyframes zoom-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<h1>Ghép Hình Kỷ Niệm 🧩</h1>
+<div class="puzzle-area">
+    <div id="piece-container"></div>
+    <div id="puzzle-board"></div>
+</div>
+<div class="navigation-links">
+    <a th:href="@{/gui-chi}" class="nav-button">Trang Thư</a>
+    <a th:href="@{/dem-ngay}" class="nav-button">Đếm Ngày Yêu</a>
+    <a th:href="@{/vong-quay}" class="nav-button">Vòng Quay</a>
+    <a th:href="@{/nghe-nhac}" class="nav-button">Nghe Nhạc</a>
+</div>
+
+<div id="success-message">
+    <div>
+        <h2>Hoàn thành!</h2>
+        <p>Người yêu em xinh nhất ❤️</p>
+        <button id="close-success-btn">Đóng</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const GRID_SIZE = 3;
+        const PIECE_COUNT = GRID_SIZE * GRID_SIZE;
+        const pieceContainer = document.getElementById('piece-container');
+        const board = document.getElementById('puzzle-board');
+        const successMessage = document.getElementById('success-message');
+        // Lấy tham chiếu đến nút đóng mới
+        const closeSuccessBtn = document.getElementById('close-success-btn');
+
+        const boardSize = board.clientWidth;
+        const pieceSize = boardSize / GRID_SIZE;
+
+        let correctPieces = 0;
+
+        for (let i = 0; i < PIECE_COUNT; i++) {
+            const slot = document.createElement('div');
+            slot.classList.add('puzzle-slot');
+            slot.dataset.id = i;
+            slot.style.width = `${pieceSize}px`;
+            slot.style.height = `${pieceSize}px`;
+            board.appendChild(slot);
+        }
+
+        const pieces = [];
+        for (let i = 0; i < PIECE_COUNT; i++) {
+            const piece = document.createElement('div');
+            piece.classList.add('puzzle-piece');
+            piece.style.width = `${pieceSize}px`;
+            piece.style.height = `${pieceSize}px`;
+            piece.style.backgroundPosition = `-${(i % GRID_SIZE) * pieceSize}px -${Math.floor(i / GRID_SIZE) * pieceSize}px`;
+            piece.draggable = true;
+            piece.dataset.id = i;
+            pieces.push(piece);
+        }
+        pieces.sort(() => Math.random() - 0.5).forEach(p => pieceContainer.appendChild(p));
+
+        let draggedPiece = null;
+        document.querySelectorAll('.puzzle-piece').forEach(piece => {
+            piece.addEventListener('dragstart', (e) => { draggedPiece = e.target; });
+        });
+        document.querySelectorAll('.puzzle-slot').forEach(slot => {
+            slot.addEventListener('dragover', (e) => { e.preventDefault(); });
+            slot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedPiece && e.target.dataset.id === draggedPiece.dataset.id) {
+                    e.target.appendChild(draggedPiece);
+                    draggedPiece.draggable = false;
+                    draggedPiece.style.cursor = 'default';
+                    correctPieces++;
+                    if (correctPieces === PIECE_COUNT) {
+                        successMessage.style.display = 'flex';
+                    }
+                }
+            });
+        });
+
+        // Hàm để đóng popup
+        function closePopup() {
+            successMessage.style.display = 'none';
+        }
+
+        // Sự kiện click nút đóng
+        closeSuccessBtn.addEventListener('click', closePopup);
+
+        // Sự kiện click ra nền để đóng
+        successMessage.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closePopup();
+            }
+        });
+    });
+</script>
+</body>
+</html>

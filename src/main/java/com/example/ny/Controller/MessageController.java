@@ -20,8 +20,7 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Day 6: 4 ngày trước khi anh lên làm người lớn:))). " +
-            "Tối nay mệt khum em. Nay anh xem tiktok thấy người ta toàn cầu hôn nhau. Nghe bảo giá vàng đang tăng nên đua nhau đi cưới. Không biết khi nào tới lượt mình:))). Khi tương lai mơ hồ đầy ô trống còn người ta địa vị thành công:)))) chết rồi hiệu ứng tóp tóp phải xóa thôi:))) ";
+    private final String loiNhan = "Day 8: 2 ngày trước khi sinh nhật. Hôm sinh nhật có gì anh sẽ lượn ờ gần Hà Đông nếu được anh muốn gặp em:)  ";
 
     @Value("${spring.mail.username}")
     private String myEmail;

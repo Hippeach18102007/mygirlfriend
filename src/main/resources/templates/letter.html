@@ -59,6 +59,105 @@
         .youtube-player-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; z-index: -1; }
         #volume-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: rgba(0, 0, 0, 0.5); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; z-index: 1001; transition: background-color 0.3s, transform 0.3s; }
         #volume-toggle:hover { background-color: var(--secondary-color); transform: scale(1.1); }
+        /* --- CSS CHO PHẦN QUÀ 20-10 --- */
+        .gift-section {
+            text-align: center;
+            margin-top: 30px; /* Điều chỉnh khoảng cách nếu cần */
+            animation: fade-in-up 0.8s 0.95s forwards cubic-bezier(0.2, 0.8, 0.2, 1); /* Hơi trễ hơn reason */
+            opacity: 0;
+        }
+
+        #gift-button {
+            background: linear-gradient(45deg, #ffc107, #ff9800); /* Màu vàng cam */
+            color: #333; /* Chữ màu tối */
+            border: none;
+            padding: 18px 35px; /* Nút to hơn một chút */
+            font-size: 1.3em;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
+        }
+
+        #gift-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(255, 152, 0, 0.7);
+        }
+
+        /* --- CSS CHO POPUP (MODAL) QUÀ --- */
+        .modal {
+            display: none; /* Mặc định ẩn */
+            position: fixed;
+            z-index: 1001; /* Đè lên nút loa */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, var(--primary-color, #c2185b), var(--secondary-color, #e91e63));
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #fff;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            animation: zoom-in 0.5s forwards;
+            color: white;
+        }
+
+        .close-modal-button {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: #fff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal-button:hover {
+            color: #eee;
+        }
+
+        .modal-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #ffd700; /* Màu vàng gold */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .gift-image {
+            max-width: 80%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .gift-message {
+            font-size: 1.2em;
+            line-height: 1.7;
+        }
+
+        @keyframes zoom-in {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -73,7 +172,9 @@
         <button id="reason-button">Nhấn vào đây đi chị!</button>
         <p id="reason-display">Mỗi lần nhấn là một bất ngờ đó 😊</p>
     </div>
-
+    <div class="gift-section">
+        <button id="gift-button">🎁 Mở quà 20-10! 🎁</button>
+    </div>
     <div class="memories-link">
         <a th:href="@{/dem-ngay}" class="memory-button">Đếm Ngày Yêu 💖</a>
         <a th:href="@{/ky-niem}" class="memory-button">Xem Kỷ Niệm &#128149;</a>
@@ -94,8 +195,6 @@
 </div>
 
 <div id="volume-toggle">🔇</div>
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
     // --- PHẦN TOÀN CỤC CHO YOUTUBE PLAYER ---
     let player;
@@ -103,17 +202,22 @@
     let isPlayerStarted = false;
 
     function onYouTubeIframeAPIReady() {
-        player = new YT.Player('youtube-player');
+        if (document.getElementById('youtube-player')) {
+            player = new YT.Player('youtube-player');
+        } else {
+            console.warn("YouTube player iframe element not found. Music player will not start.");
+        }
     }
 
     // --- PHẦN XỬ LÝ CHÍNH KHI TRANG TẢI XONG ---
     document.addEventListener("DOMContentLoaded", function() {
-        // --- Code xử lý gửi form ---
+
+        // --- 1. Code xử lý gửi form ---
         const form = document.getElementById('replyForm');
         const statusMessage = document.getElementById('statusMessage');
         const submitButton = document.getElementById('submitButton');
 
-        if (form) {
+        if (form && statusMessage && submitButton) {
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
                 submitButton.disabled = true;
@@ -140,13 +244,15 @@
                         submitButton.innerHTML = '&#10084; Gửi cho em';
                     });
             });
+        } else {
+            console.warn("Reply form elements not found.");
         }
 
-        // --- Code cho chức năng "Lý do yêu thương" ---
+        // --- 2. Code cho chức năng "Lý do yêu thương" ---
         const reasonButton = document.getElementById('reason-button');
         const reasonDisplay = document.getElementById('reason-display');
 
-        if (reasonButton) {
+        if (reasonButton && reasonDisplay) {
             const reasons = [
                 "Em yêu chị Vì nụ cười của chị làm em vui cả ngày.",
                 "Em yêu chị Vì chị luôn ở bên cạnh em những lúc khó khăn.",
@@ -170,13 +276,18 @@
                     reasonDisplay.classList.remove('fade');
                 }, 500);
             });
+        } else {
+            console.warn("Reason elements not found.");
         }
 
-        // --- Code cho nút điều khiển YouTube Player ---
+        // --- 3. Code cho nút điều khiển YouTube Player ---
         const volumeButton = document.getElementById('volume-toggle');
         if (volumeButton) {
             volumeButton.addEventListener('click', function() {
-                if (!player || typeof player.playVideo !== 'function') { return; }
+                if (!player || typeof player.playVideo !== 'function') {
+                    console.warn("Player is not ready yet or does not exist.");
+                    return;
+                }
                 if (!isPlayerStarted) {
                     player.playVideo();
                     player.unMute();
@@ -195,13 +306,57 @@
                     }
                 }
             });
+        } else {
+            console.warn("Volume toggle button not found.");
         }
-    });
+
+        // --- 4. Code cho chức năng "Mở quà 20-10" ---
+        const giftButton = document.getElementById('gift-button');
+        const giftModal = document.getElementById('giftModal'); // Check ID here
+
+        if (giftButton && giftModal) {
+            const closeModalButton = giftModal.querySelector('.close-modal-button'); // Find button *inside* modal
+
+            if (!closeModalButton) {
+                console.error("Close button for gift modal not found INSIDE the modal.");
+            } else {
+                giftButton.addEventListener('click', () => {
+                    giftModal.style.display = 'flex';
+                });
+
+                closeModalButton.addEventListener('click', () => {
+                    giftModal.style.display = 'none';
+                });
+
+                giftModal.addEventListener('click', (event) => {
+                    if (event.target === giftModal) {
+                        giftModal.style.display = 'none';
+                    }
+                });
+
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === "Escape" && giftModal.style.display === 'flex') {
+                        giftModal.style.display = 'none';
+                    }
+                });
+            } // End if closeModalButton exists
+        } else {
+            if (!giftButton) console.warn("Gift button not found.");
+            if (!giftModal) console.warn("Gift modal element (id='giftModal') not found.");
+        }
+    }); // End DOMContentLoaded
 </script>
 
 <div class="youtube-player-hidden">
     <iframe id="youtube-player" src="https://www.youtube.com/embed/EFJ7kDjwI6w?autoplay=1&loop=1&playlist=EFJ7kDjwI6w&controls=0&mute=1&enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>
 </div>
-
+<div id="giftModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal-button">&times;</span>
+        <h2>Chúc mừng ngày 20-10!</h2>
+        <img th:src="@{/img/gift-image.jpg}" alt="Quà tặng 20-10" class="gift-image">
+        <p class="gift-message">Chúc chị một ngày thật vui vẻ, xinh đẹp và luôn ngập tràn hạnh phúc. Em yêu chị rất nhiều!</p>
+    </div>
+</div>
 </body>
 </html>

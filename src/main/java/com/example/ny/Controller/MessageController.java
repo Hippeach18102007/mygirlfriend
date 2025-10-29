@@ -20,7 +20,7 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Em bé bị dâu rồiii có gì khó chịu hoặc cần giúp cứ bảo anh nha. Yêu em 3000. Em bé Loan của anh";
+    private final String loiNhan = "HUHU Nay anh lỡ mồm anh xin lỗi mà:(((. Hứa sau ko thế nữa à +1 bài học rồi";
 
     @Value("${spring.mail.username}")
     private String myEmail;
@@ -97,5 +97,13 @@ public class MessageController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi gửi email.");
         }
+    }
+    @GetMapping("/mon-an")
+    public String showFoodPickerPage() {
+        return "mon-an";
+    }
+    @GetMapping("/bai-hoc")
+    public String showLessonsPage() {
+        return "bai-hoc";
     }
 }

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Những Bài Học Tình Yêu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #81c784; /* Màu xanh lá cây nhẹ nhàng */ }
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1488866022504-f2584929ca5f?q=80&w=2062&auto=format&fit=crop'); /* Ảnh nền thư viện/sách */
+            background-repeat: no-repeat; background-position: center center; background-size: cover;
+            color: #333; line-height: 1.7;
+        }
+        .container {
+            max-width: 800px; margin: 40px auto; background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fade-in-up 1s forwards;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: 2.8em; color: var(--primary-color);
+            text-align: center; margin-bottom: 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .lesson {
+            background-color: #fff;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid var(--primary-color);
+            opacity: 0;
+            animation: fade-in-up 0.8s forwards;
+        }
+        /* Hiệu ứng xuất hiện lần lượt */
+        .lesson:nth-child(1) { animation-delay: 0.3s; }
+        .lesson:nth-child(2) { animation-delay: 0.5s; }
+        .lesson:nth-child(3) { animation-delay: 0.7s; }
+        /* Thêm tiếp nếu có nhiều bài học hơn */
+
+        .lesson h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6em; color: #555;
+            margin-top: 0; margin-bottom: 10px;
+        }
+        .lesson p {
+            font-size: 1.1em; color: #444;
+        }
+        .navigation-links { display: flex; justify-content: center; gap: 15px; border-top: 1px dashed #ccc; padding-top: 30px; margin-top: 40px; flex-wrap: wrap; }
+        .nav-button {
+            background-color: var(--primary-color); color: white; border: none; padding: 12px 25px;
+            font-size: 1em; font-family: 'Quicksand', sans-serif; font-weight: bold;
+            border-radius: 50px; cursor: pointer; text-decoration: none;
+            transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .nav-button:hover { background-color: #66bb6a; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📖 Những Bài Học Trên Hành Trình Yêu 💖</h1>
+
+    <div class="lesson">
+        <h2>Bài học 1: Lắng nghe quan trọng hơn lời nói</h2>
+        <p>Em nhận ra rằng, đôi khi chỉ cần im lặng và lắng nghe chị chia sẻ đã là sự an ủi lớn nhất. Không phải lúc nào cũng cần đưa ra giải pháp, chỉ cần ở bên cạnh là đủ.</p>
+    </div>
+
+    <div class="lesson">
+        <h2>Bài học 2: Không được nói từ lốp dự phòng </h2>
+        <p>Anh yêu em thật lòng nên không có lốp gì ở đây cả</p>
+    </div>
+
+    <div class="lesson">
+        <h2>Bài học 3: Cho phép mách mẹ và bà</h2>
+        <p>Không cấm em mách ai hết</p>
+    </div>
+
+    <div class="navigation-links">
+        <a th:href="@{/gui-chi}" class="nav-button">Trang Thư</a>
+        <a th:href="@{/dem-ngay}" class="nav-button">Đếm Ngày Yêu</a>
+        <a th:href="@{/mon-an}" class="nav-button">Ăn Gì Đây?</a>
+    </div>
+</div>
+
+</body>
+</html>

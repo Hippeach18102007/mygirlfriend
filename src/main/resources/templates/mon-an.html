@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hôm Nay Ăn Gì?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #ff9800; /* Màu cam năng động */ }
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1974&auto=format&fit=crop'); /* Ảnh nền đồ ăn */
+            background-repeat: no-repeat; background-position: center center; background-size: cover;
+            color: white; text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.6); padding: 50px; border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 152, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            animation: fade-in-up 1s forwards;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: 3em; color: var(--primary-color);
+            text-shadow: 0 0 15px var(--primary-color); margin-bottom: 20px;
+        }
+        #food-suggestion {
+            font-size: 2em; font-weight: bold; margin: 30px 0; min-height: 50px;
+            color: #fff; text-shadow: 2px 2px 4px #000;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #food-suggestion.loading {
+            opacity: 0.5;
+        }
+        #pick-button {
+            background-color: var(--primary-color); color: #333; border: none;
+            padding: 18px 40px; font-size: 1.5em; font-weight: bold; border-radius: 50px;
+            cursor: pointer; transition: all 0.3s; box-shadow: 0 5px 20px rgba(255, 152, 0, 0.6);
+        }
+        #pick-button:hover { background-color: #fb8c00; transform: scale(1.1); }
+        #pick-button:active { transform: scale(1.05); }
+
+        .navigation-links { display: flex; justify-content: center; gap: 15px; margin-top: 50px; flex-wrap: wrap; }
+        .nav-button { background-color: transparent; color: white; border: 1px solid white; padding: 10px 20px; font-size: 0.9em; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .nav-button:hover { background-color: white; color: black; }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Hôm Thứ 7 Ăn Gì Nhỉ? 🤔</h1>
+    <p id="food-suggestion">Nhấn nút để chọn món nào!</p>
+    <button id="pick-button">🍜 Chọn Món! 🍕</button>
+
+    <div class="navigation-links">
+        <a th:href="@{/gui-chi}" class="nav-button">Trang Thư</a>
+        <a th:href="@{/dem-ngay}" class="nav-button">Đếm Ngày Yêu</a>
+        <a th:href="@{/vong-quay}" class="nav-button">Vòng Quay</a>
+        <a th:href="@{/ghep-hinh}" class="nav-button">Ghép Hình</a>
+        <a th:href="@{/bai-hoc}" class="nav-button">Bài Học Tình Yêu</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DANH SÁCH MÓN ĂN - THÊM VÀO THOẢI MÁI ---
+        const foodList = [
+            "Phở bò", "Bún chả", "Cơm rang dưa bò", "Bún đậu mắm tôm",
+            "Nem nướng", "Xôi xéo", "Bánh mì pate", "Miến trộn",
+            "Pizza", "Gà rán", "Mì Ý", "Salad", "Lẩu Thái", "Đồ nướng BBQ",
+            "Bún bò Huế", "Mì Quảng", "Hủ tiếu", "Dimsum", "Sushi", "Trà sữa",
+            "Chè", "Bún riêu cua", "Bánh cuốn", "Cơm tấm sườn bì chả"
+            // Thêm bao nhiêu món tùy thích...
+        ];
+        // ------------------------------------------
+
+        const suggestionDisplay = document.getElementById('food-suggestion');
+        const pickButton = document.getElementById('pick-button');
+
+        pickButton.addEventListener('click', () => {
+            // Hiệu ứng "đang suy nghĩ"
+            suggestionDisplay.classList.add('loading');
+            suggestionDisplay.textContent = "Đang nghĩ...";
+            pickButton.disabled = true;
+
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * foodList.length);
+                const randomFood = foodList[randomIndex];
+
+                suggestionDisplay.textContent = `Hay là ăn "${randomFood}" nha chị? 😉`;
+                suggestionDisplay.classList.remove('loading');
+                pickButton.disabled = false;
+            }, 800); // Giả bộ suy nghĩ 0.8 giây
+        });
+    });
+</script>
+
+</body>
+</html>

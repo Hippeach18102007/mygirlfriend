@@ -21,7 +21,7 @@
       box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-      max-width: 900px;
+      max-width: 1200px; /* Tăng chiều rộng */
       width: 95%;
     }
     h1 {
@@ -29,75 +29,101 @@
       text-shadow: 0 0 15px var(--primary-color); margin-bottom: 30px;
     }
 
+    /* --- KHU VỰC CHƠI GAME MỚI --- */
+    .game-area {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 30px;
+      flex-wrap: wrap; /* Xuống dòng trên màn hình nhỏ */
+    }
+
     #game-board {
+      flex-basis: 600px; /* Kích thước cố định cho bảng */
       display: grid;
       grid-template-columns: repeat(6, 1fr); /* 6 cột */
       gap: 10px;
-      perspective: 1000px; /* Cho hiệu ứng 3D */
+      perspective: 1000px;
     }
     .card {
-      width: 100%;
-      aspect-ratio: 4 / 5; /* Tỉ lệ thẻ */
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.6s;
-      cursor: pointer;
+      width: 100%; aspect-ratio: 4 / 5; position: relative;
+      transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer;
     }
-    .card.is-flipped {
-      transform: rotateY(180deg);
-    }
+    .card.is-flipped { transform: rotateY(180deg); }
     .card-face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden; /* Ẩn mặt sau */
-      border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 5px;
-      box-sizing: border-box;
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; border-radius: 10px;
+      display: flex; justify-content: center; align-items: center;
+      text-align: center; padding: 5px; box-sizing: border-box;
     }
     .card-back {
       background: linear-gradient(145deg, var(--primary-color), #f06292);
-      font-size: 3em;
-      color: white;
-      border: 2px solid white;
+      font-size: 3em; color: white; border: 2px solid white;
     }
     .card-front {
-      background-color: #fff;
-      color: #333;
-      font-weight: bold;
-      transform: rotateY(180deg); /* Ẩn mặt trước ban đầu */
-      font-size: 0.9em;
+      background-color: #fff; color: #333; font-weight: bold;
+      transform: rotateY(180deg); font-size: 0.9em;
     }
     .card.is-matched {
-      opacity: 0.3; /* Mờ đi khi đã lật đúng */
-      pointer-events: none; /* Không cho click nữa */
+      /* Ẩn thẻ đi sau khi đã thêm vào danh sách */
+      transform: rotateY(180deg) scale(0.8);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.5s, opacity 0.5s;
     }
 
-    #win-message {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-      justify-content: center; align-items: center; flex-direction: column;
-      animation: zoom-in 0.5s forwards; z-index: 100;
+    /* --- DANH SÁCH THỬ THÁCH THU THẬP --- */
+    #prize-list-container {
+      flex-basis: 300px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      min-height: 400px;
     }
-    #win-message h2 { font-family: 'Playfair Display', serif; font-size: 3em; color: var(--primary-color); }
-    #win-message p { font-size: 1.5em; }
+    #prize-list-container h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5em; color: #f06292;
+      margin-top: 0; border-bottom: 1px dashed #f06292; padding-bottom: 10px;
+    }
+    #prize-list {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .prize-item {
+      background: #fff;
+      color: var(--primary-color);
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 1.1em;
+      opacity: 0;
+      animation: slideIn 0.5s forwards;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
 
-    .navigation-links { display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
-    .nav-button { background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; font-size: 1em; font-family: 'Quicksand', sans-serif; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
-    .nav-button:hover { background-color: #f06292; transform: translateY(-3px); }
-    @keyframes zoom-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    #win-message { /* Giữ nguyên */ }
+    .navigation-links { /* Giữ nguyên */ }
   </style>
 </head>
 <body>
 
 <div class="container">
   <h1>Trò Chơi Lật Thẻ Thử Thách 💖</h1>
-  <div id="game-board">
+
+  <div class="game-area">
+    <div id="game-board">
+    </div>
+
+    <div id="prize-list-container">
+      <h2>Thử Thách Đã Thu Thập:</h2>
+      <ul id="prize-list">
+      </ul>
+    </div>
   </div>
+
   <div class="navigation-links">
     <a th:href="@{/gui-chi}" class="nav-button">Quay lại Trang Thư</a>
   </div>
@@ -110,33 +136,29 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // --- DANH SÁCH 15 THỬ THÁCH - HÃY TỰ SỬA LẠI CHO HAY ---
     const challenges = [
-      'Một ly trà sữa 🧋', 'Massage 10 phút 💆‍♀️',
-      'Em rửa bát 1 tuần 🍽️', 'Một nụ hôn thật sâu 💋',
-      'Miễn giận dỗi 1 ngày 😇', 'Yêu cầu 1 điều bất kỳ ✨',
-      'Một buổi xem phim 🎬', 'Em nấu bữa tối 🧑‍🍳',
-      'Đi dạo Hồ Tây 🚲', '10 cái ôm thật chặt 🤗',
-      'Hát cho chị nghe 🎤', 'Một cây son mới 💄',
-      'Bữa sáng tận giường 🥐', 'Đi dạo công viên🏃‍♂️',
-      'Nắm tay cả ngày 🤝'
+      'Một ly trà sữa 🧋', 'Massage 10 phút 💆‍♀️', 'Em rửa bát 1 tuần 🍽️',
+      'Một nụ hôn thật sâu 💋', 'Miễn giận dỗi 1 ngày 😇', 'Yêu cầu 1 điều bất kỳ ✨',
+      'Một buổi xem phim 🎬', 'Em nấu bữa tối 🧑‍🍳', 'Đi dạo Hồ Tây 🚲',
+      '10 cái ôm thật chặt 🤗', 'Hát cho chị nghe 🎤', 'Một cây son mới 💄',
+      'Bữa sáng tận giường 🥐', 'Đi dạo với chị 🏃‍♂️', 'Nắm tay cả ngày 🤝'
     ];
-    // --------------------------------------------------
-
-    let gameCards = [...challenges, ...challenges]; // Tạo 15 cặp (30 thẻ)
-    gameCards.sort(() => Math.random() - 0.5); // Xáo trộn thẻ
+    // ... (code cũ giữ nguyên) ...
+    let gameCards = [...challenges, ...challenges];
+    gameCards.sort(() => Math.random() - 0.5);
 
     const gameBoard = document.getElementById('game-board');
     const winMessage = document.getElementById('win-message');
+    const prizeList = document.getElementById('prize-list'); // Lấy danh sách
     let flippedCards = [];
     let lockBoard = false;
     let matchedPairs = 0;
 
     gameCards.forEach(challenge => {
+      // ... (code tạo thẻ giữ nguyên) ...
       const card = document.createElement('div');
       card.classList.add('card');
-      card.dataset.challenge = challenge; // Lưu tên thử thách vào data
-
+      card.dataset.challenge = challenge;
       card.innerHTML = `
                 <div class="card-face card-back">?</div>
                 <div class="card-face card-front">${challenge}</div>
@@ -147,7 +169,8 @@
 
     function flipCard() {
       if (lockBoard) return;
-      if (this === flippedCards[0]) return; // Chặn click 2 lần 1 thẻ
+      if (this === flippedCards[0]) return;
+      if (this.classList.contains('is-matched')) return; // Thêm dòng này
 
       this.classList.add('is-flipped');
       flippedCards.push(this);
@@ -164,22 +187,35 @@
     }
 
     function disableCards() {
+      // *** ĐÂY LÀ PHẦN THAY ĐỔI CHÍNH ***
+      const challengeText = flippedCards[0].dataset.challenge;
+
+      // 1. Thêm vào danh sách thu thập
+      const li = document.createElement('li');
+      li.classList.add('prize-item');
+      li.textContent = challengeText;
+      prizeList.appendChild(li);
+
+      // 2. Làm mờ và ẩn thẻ đi
       flippedCards.forEach(card => card.classList.add('is-matched'));
+
+      // 3. Phần còn lại giữ nguyên
       matchedPairs++;
       resetBoard();
 
       if (matchedPairs === challenges.length) {
         setTimeout(() => {
           winMessage.style.display = 'flex';
-        }, 1000); // Chờ 1s rồi hiện thông báo
+        }, 1000);
       }
     }
 
     function unflipCards() {
+      // ... (hàm này giữ nguyên) ...
       setTimeout(() => {
         flippedCards.forEach(card => card.classList.remove('is-flipped'));
         resetBoard();
-      }, 1200); // Chờ 1.2s rồi lật lại
+      }, 1200);
     }
 
     function resetBoard() {

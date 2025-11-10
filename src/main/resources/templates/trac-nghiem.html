@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc Nghiệm Tình Yêu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #9c27b0; /* Màu tím lãng mạn */
+            --correct-color: #4caf50;
+            --wrong-color: #f44336;
+        }
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1505968409348-bd000797c92e?q=80&w=2070&auto-format&fit=crop');
+            background-repeat: no-repeat; background-position: center center; background-size: cover;
+            color: white; text-align: center;
+        }
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            max-width: 600px;
+            width: 90%;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fade-in-up 1s forwards;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        #question-text {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover:not(:disabled) {
+            background-color: #7b1fa2;
+            transform: scale(1.02);
+        }
+        .btn.correct { background-color: var(--correct-color) !important; }
+        .btn.wrong { background-color: var(--wrong-color) !important; }
+        .btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #next-btn {
+            background-color: #333;
+        }
+
+        .hide { display: none; }
+
+        #result-container h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-color);
+        }
+        #result-message {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .navigation-links { display: flex; justify-content: center; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .nav-button { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; font-size: 0.9em; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .nav-button:hover { background-color: #7b1fa2; }
+
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-container">
+    <h1>Chị hiểu em đến đâu? 🧐</h1>
+
+    <div id="question-container">
+        <div id="question-text">Câu hỏi sẽ hiện ở đây</div>
+        <div id="answer-buttons" class="btn-grid">
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="next-btn" class="btn hide">Câu tiếp theo</button>
+    </div>
+
+    <div id="result-container" class="hide">
+        <h2>Hoàn thành!</h2>
+        <p id="score-text">Chị đúng 0/10 câu!</p>
+        <p id="result-message">Dù đúng hay sai, em vẫn yêu chị ❤️</p>
+        <button id="restart-btn" class="btn">Chơi lại</button>
+    </div>
+</div>
+
+<div class="navigation-links">
+    <a th:href="@{/gui-chi}" class="nav-button">Quay lại Trang Thư</a>
+</div>
+
+<script>
+    // === QUAN TRỌNG: HÃY SỬA LẠI 10 CÂU HỎI VÀ ĐÁP ÁN CỦA BẠN Ở ĐÂY ===
+    // Sửa lại "text" và đánh dấu "correct: true" cho đáp án đúng
+    const questions = [
+        {
+            question: "Câu hỏi 1: Ngày đầu tiên mình gặp nhau là vào ngày bao nhiêu?",
+            answers: [
+                { text: "18/10", correct: true }, // Đây là đáp án đúng mẫu
+                { text: "20/10", correct: false },
+                { text: "30/10", correct: false }
+            ]
+        },
+        {
+            question: "Câu hỏi 2: Mình đi đâu đầu tiên khi vào aeon mall Hà Đông?",
+            answers: [
+                { text: "CGV", correct: false },
+                { text: "Hàng ăn", correct: false },
+                { text: "Cửa hàng lưu niệm", correct: true }, // Đổi đáp án đúng mẫu
+                { text: "Cửa hàng thời trang", correct: false }
+            ]
+        },
+        {
+            question: "Câu hỏi 3: Em thích đi chơi cùng anh đúng không?",
+            answers: [
+                { text: "Đúng", correct: true }, // Mẫu câu hỏi đúng/sai
+                { text: "Sai", correct: false }
+            ]
+        },
+        {
+            question: "Câu hỏi 4: Buổi thứ 2 mình hẹn hò ở đâu?",
+            answers: [
+                { text: "Times City", correct: false },
+                { text: "Nhà Anh", correct: true },
+                { text: "Aeon Hà Đông", correct: false }
+            ]
+        },
+        {
+            question: "Câu hỏi 5: Nhà hàng mình ăn trưa ở AEON Hà Đông là?",
+            answers: [
+                { text: "Pepper Lunch", correct: true },
+                { text: "Texas", correct: false },
+                { text: "KFC", correct: false },
+                { text: "Lotteria", correct: false }
+            ]
+        },
+        {
+            question: "Câu hỏi 6: Đâu là quán gà rán mình đã đi ăn mà anh thích nhất?",
+            answers: [
+                { text: "KFC", correct: false },
+                { text: "Lotteria", correct: false },
+                { text: "BBQ Chicken", correct: true }
+            ]
+        },
+        {
+            question: "Câu hỏi 7: Ai follow ig của đối phương trước?",
+            answers: [
+                { text: "Em", correct: false },
+                { text: "Anh", correct: true },
+
+            ]
+        },
+        {
+            question: "Câu hỏi 8: Nụ hôn môi đầu của chúng ta là ở buổi hẹn thứ mấy",
+            answers: [
+                { text: "Buổi 1", correct: false },
+                { text: "Buổi 2", correct: true },
+                { text: "Buổi 4", correct: false },
+                { text: "Buổi 3", correct: false }
+
+            ]
+        },
+        {
+            question: "Câu hỏi 9: Anh yêu em",
+            answers: [
+                { text: "Em cũng yêu anh", correct: true },
+                { text: "Em cũng thế", correct: true },
+                { text: "Em yêu Đức nhiều ạ", correct: true },
+                { text: "Em yêu người yêu em lắmmmmm", correct: true }
+            ]
+        },
+        {
+            question: "Câu hỏi 10: Em yêu chị vì điều gì nhất?",
+            answers: [
+                { text: "Vì chị xinh", correct: true },
+                { text: "Vì chị tốt bụng", correct: true },
+                { text: "Vì chị luôn là chị", correct: true },
+                { text: "Tất cả các đáp án trên", correct: true } // Mẫu câu nhiều đáp án đúng
+            ]
+        }
+    ];
+    // -----------------------------------------------------------------
+
+    const questionContainer = document.getElementById('question-container');
+    const questionText = document.getElementById('question-text');
+    const answerButtons = document.getElementById('answer-buttons');
+    const nextBtn = document.getElementById('next-btn');
+    const resultContainer = document.getElementById('result-container');
+    const scoreText = document.getElementById('score-text');
+    const resultMessage = document.getElementById('result-message');
+    const restartBtn = document.getElementById('restart-btn');
+
+    let currentQuestionIndex, score;
+
+    function startGame() {
+        currentQuestionIndex = 0;
+        score = 0;
+        questionContainer.classList.remove('hide');
+        resultContainer.classList.add('hide');
+        nextBtn.classList.add('hide');
+        showQuestion(questions[currentQuestionIndex]);
+    }
+
+    function showQuestion(question) {
+        while (answerButtons.firstChild) {
+            answerButtons.removeChild(answerButtons.firstChild);
+        }
+        nextBtn.classList.add('hide');
+        questionText.textContent = question.question;
+
+        question.answers.forEach(answer => {
+            const button = document.createElement('button');
+            button.textContent = answer.text;
+            button.classList.add('btn');
+            if (answer.correct) {
+                button.dataset.correct = true;
+            }
+            button.addEventListener('click', selectAnswer);
+            answerButtons.appendChild(button);
+        });
+    }
+
+    function selectAnswer(e) {
+        const selectedButton = e.target;
+        const correct = selectedButton.dataset.correct === "true";
+
+        Array.from(answerButtons.children).forEach(button => {
+            button.disabled = true;
+            if (button.dataset.correct === "true") {
+                button.classList.add('correct');
+            } else {
+                button.classList.add('wrong');
+            }
+        });
+
+        if (correct) {
+            score++;
+        }
+
+        nextBtn.classList.remove('hide');
+    }
+
+    function showNextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            showQuestion(questions[currentQuestionIndex]);
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        questionContainer.classList.add('hide');
+        nextBtn.classList.add('hide');
+        resultContainer.classList.remove('hide');
+
+        scoreText.textContent = `Chị đúng ${score} / ${questions.length} câu!`;
+
+        if (score === questions.length) {
+            resultMessage.textContent = "Tuyệt vời! Chị hiểu em quá đi mất. Yêu chị ❤️";
+        } else if (score >= questions.length * 0.7) { // Đúng 70% trở lên
+            resultMessage.textContent = "Chị cũng nhớ nhiều lắm đó! Vài câu kia em lừa chị thôi 😉";
+        } else {
+            resultMessage.textContent = "Không sao! Mình còn cả đời để tìm hiểu nhau cơ mà. Yêu chị! 🥰";
+        }
+    }
+
+    nextBtn.addEventListener('click', showNextQuestion);
+    restartBtn.addEventListener('click', startGame);
+
+    startGame();
+</script>
+
+</body>
+</html>

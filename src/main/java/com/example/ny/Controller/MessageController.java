@@ -114,4 +114,8 @@ public class MessageController {
     public String showQuizPage() {
         return "trac-nghiem";
     }
+    @GetMapping("/truth-or-dare")
+    public String showTruthOrDarePage() {
+        return "truth-or-dare";
+    }
 }

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sự Thật hay Thử Thách?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --truth-color: #03a9f4; /* Màu xanh cho Sự Thật */
+            --dare-color: #f44336;  /* Màu đỏ cho Thử Thách */
+        }
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #4a0e4e);
+            color: white; text-align: center; overflow: hidden;
+        }
+        .container {
+            width: 90%;
+            max-width: 500px;
+            animation: fade-in 1s forwards;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; font-size: 2.8em;
+            text-shadow: 0 0 15px rgba(255,255,255,0.5); margin-bottom: 40px;
+        }
+
+        #choice-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .choice-btn {
+            padding: 40px 20px;
+            font-size: 2em;
+            font-family: 'Playfair Display', serif;
+            font-weight: bold;
+            border: 3px solid white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            position: relative;
+        }
+        /* --- MỚI: Thêm số đếm lá bài --- */
+        .card-count {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.5em;
+            font-family: 'Quicksand', sans-serif;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            padding: 3px 6px;
+        }
+        #truth-btn { background-color: var(--truth-color); }
+        #dare-btn { background-color: var(--dare-color); }
+        .choice-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255,255,255,0.7);
+        }
+        .choice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #555;
+        }
+
+        #card-display { /* Giữ nguyên */ }
+        #card-type { /* Giữ nguyên */ }
+        #card-text { /* Giữ nguyên */ }
+        #play-again-btn { /* Giữ nguyên */ }
+        .hide { display: none; }
+        .navigation-links { /* Giữ nguyên */ }
+        .nav-button { /* Giữ nguyên */ }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoom-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sự Thật hay Thử Thách? 😈</h1>
+
+    <div id="choice-container">
+        <button class="choice-btn" id="truth-btn">
+            Sự Thật
+            <span class="card-count" id="truth-count">50 lá</span>
+        </button>
+        <button class="choice-btn" id="dare-btn">
+            Thử Thách
+            <span class="card-count" id="dare-count">50 lá</span>
+        </button>
+    </div>
+
+    <div id="card-display" class="hide">
+        <h2 id="card-type">Sự Thật</h2>
+        <p id="card-text">Nội dung câu hỏi sẽ hiện ở đây...</p>
+        <button id="play-again-btn">Rút lá khác</button>
+    </div>
+
+</div>
+
+<div class="navigation-links">
+    <a th:href="@{/gui-chi}" class="nav-button">Quay lại Trang Thư</a>
+</div>
+
+<script>
+    // === ĐÃ VIẾT ĐỦ 50 CÂU HỎI SỰ THẬT ===
+    let truthQuestions = [
+        "Ấn tượng đầu tiên của chị về em là gì?",
+        "Chị có bao giờ nói dối em (dù là vô hại) chưa?",
+        "Điều chị yêu nhất ở em là gì?",
+        "Chị có bí mật nào chưa bao giờ kể em nghe không?",
+        "Mô tả nụ hôn đầu tiên của chúng mình bằng 3 từ?",
+        "Nếu được thay đổi 1 điều ở em, chị sẽ thay đổi gì?",
+        "Kỷ niệm đáng xấu hổ nhất của chị là gì?",
+        "Chị có hay khoe em với bạn bè không?",
+        "Chị thích nhất điểm nào trên cơ thể em?",
+        "Bài hát nào làm chị nghĩ ngay đến em?",
+        "Lần cuối chị khóc là khi nào? Vì sao?",
+        "Điều gì ở em làm chị thấy phiền lòng nhất?",
+        "Tật xấu nào của chị mà em chưa biết?",
+        "Chị nghĩ gì về 'tình cũ' của em?",
+        "Nếu có 1 ngày được làm em, chị sẽ làm gì?",
+        "Chị có sợ mất em không?",
+        "Món quà nào của em làm chị thích nhất?",
+        "Chị có bao giờ ghen với bạn của em không?",
+        "Lần cãi nhau nào chị thấy mình sai nhất?",
+        "Điều lãng mạn nhất em từng làm cho chị là gì?",
+        "Chị thích được em gọi bằng biệt danh gì nhất?",
+        "Chị có bao giờ 'stalk' Facebook người yêu cũ của em không?",
+        "Điều 'điên rồ' nhất chị muốn làm cùng em là gì?",
+        "Chị có nghĩ đến chuyện tương lai của chúng mình không?",
+        "Mô tả em bằng 1 từ duy nhất?",
+        "Chị có thích được ôm từ phía sau không?",
+        "Chị có bao giờ mơ thấy em không? Kể về giấc mơ đó.",
+        "Em có giống hình mẫu lý tưởng của chị không?",
+        "Chị sợ nhất điều gì trong tình yêu?",
+        "Chị có tự tin 100% vào tình cảm của em không?",
+        "Nếu em tăng 20kg, chị còn yêu em không?",
+        "Kỷ niệm nào với em làm chị cười nhiều nhất?",
+        "Điều đầu tiên chị chú ý khi gặp một người con trai?",
+        "Chị có muốn đi du lịch ở đâu chỉ có 2 đứa mình không?",
+        "Chị thích được hôn ở đâu nhất (trừ môi)?",
+        "Nếu cãi nhau, ai là người làm lành trước?",
+        "Chị có bao giờ 'thả thính' người khác sau khi quen em không?",
+        "Chị sẽ làm gì nếu em quên sinh nhật chị?",
+        "Chị có bao giờ thấy chán em chưa?",
+        "Màu sắc nào chị thấy hợp với em nhất?",
+        "Chị thích em mặc đồ gì nhất?",
+        "Chị có hay tưởng tượng về 'đám cưới' của mình không?",
+        "Nếu được quay lại, chị có chọn yêu em không?",
+        "Điều gì chị chưa bao giờ dám hỏi em?",
+        "Chị có chấp nhận yêu xa không?",
+        "Chị thích em nói 'Em yêu chị' hay hành động?",
+        "Chị có thấy mình là người may mắn khi có em không?",
+        "Chị có muốn nuôi thú cưng chung với em không?",
+        "Điều 'ngốc nghếch' nhất chị từng làm vì yêu?",
+        "Chị muốn em hứa với chị điều gì nhất?"
+    ];
+
+    // === ĐÃ VIẾT ĐỦ 50 CÂU THỬ THÁCH ===
+    let dareChallenges = [
+        "Hát một đoạn bài hát em yêu cầu.",
+        "Nhắn tin cho em 'Em yêu chị nhiều lắm' ngay bây giờ.",
+        "Hãy kể một câu chuyện cười cho đến khi em cười.",
+        "Gửi cho em 1 tấm ảnh 'dìm' nhất của chị.",
+        "Đổi ảnh đại diện Facebook thành hình em trong 1 tiếng.",
+        "Cho em xem 5 bức ảnh cuối cùng chị chụp bằng điện thoại.",
+        "Gọi cho em (nếu đang nhắn tin) và nói 'Yêu' 3 lần.",
+        "Hẹn 1 lịch đi xem phim (em chọn phim).",
+        "Đăng 1 story có hình hai đứa mình.",
+        "Tự 'thú nhận' 1 tật xấu của chị.",
+        "Nói 'Em là người tuyệt vời nhất' 5 lần liên tục.",
+        "Đặt 1 món đồ ăn/trà sữa cho em ngay lập tức.",
+        "Viết tên em lên mu bàn tay và chụp ảnh gửi em.",
+        "Bắt chước tiếng 1 con vật em yêu cầu.",
+        "Kể 3 điều chị yêu ở em.",
+        "Nhắm mắt và để em 'vẽ' lên mặt chị (bằng ngón tay).",
+        "Cho em đặt 1 câu hỏi 'Sự Thật' (bỏ qua lượt này).",
+        "Đứng dậy và nhảy một điệu nhảy ngớ ngẩn trong 15 giây.",
+        "Tìm thứ gì đó màu đỏ gần chị nhất.",
+        "Gửi cho em tin nhắn thoại nói 'I love you'.",
+        "Ôm gối và tưởng tượng đó là em trong 1 phút.",
+        "Kể một bí mật chưa ai biết (trừ em).",
+        "Gửi cho em 3 emoji đầu tiên chị hay dùng.",
+        "Đặt biệt danh mới thật kêu cho em.",
+        "Cho em xem lịch sử tìm kiếm Google của chị (3 tìm kiếm gần nhất).",
+        "Hứa sẽ massage cho em 10 phút vào lần tới gặp nhau.",
+        "Hôn vào màn hình điện thoại (chỗ có hình em).",
+        "Mua 1 ly trà sữa cho em vào ngày mai.",
+        "Cười thật to trong 10 giây không lý do.",
+        "Để tóc giống em (nếu có thể).",
+        "Kể tên 5 món ăn em thích nhất.",
+        "Lần tới gặp, chị phải là người chủ động hôn em.",
+        "Nói một câu lãng mạn bằng giọng... Google Dịch.",
+        "Làm 10 cái 'jumping jacks' (nhảy dang tay chân).",
+        "Lên kế hoạch cho buổi hẹn hò tiếp theo.",
+        "Gửi 1 icon trái tim cho người thứ 3 trong danh sách bạn bè Zalo.",
+        "Cho em xem ảnh 'hồi bé' của chị.",
+        "Tả lại lần đầu tiên mình gặp nhau.",
+        "Làm một mặt xấu nhất có thể và chụp ảnh gửi em.",
+        "Hứa sẽ không giận em trong 24 giờ tới (dù có chuyện gì).",
+        "Đọc to 1 câu 'thả thính' em.",
+        "Chuyển 10k cho em với nội dung 'Tiền tiêu vặt'.",
+        "Viết 'Em + Chị = ❤️' và gửi cho em.",
+        "Nói 'Chị sai rồi, em đúng' (ngay cả khi chị đúng).",
+        "Ngửi một thứ gì đó trong phòng và mô tả nó.",
+        "Đoán xem em đang mặc áo màu gì?",
+        "Hứa sẽ làm 1 việc nhà (em chỉ định).",
+        "Cù nách chính mình trong 30 giây.",
+        "Đặt báo thức 5 giờ sáng mai (rồi... tắt đi ngủ).",
+        "Thử thách cuối: Ôm em thật chặt (khi gặp nhau)."
+    ];
+
+    const choiceContainer = document.getElementById('choice-container');
+    const cardDisplay = document.getElementById('card-display');
+    const truthBtn = document.getElementById('truth-btn');
+    const dareBtn = document.getElementById('dare-btn');
+    const cardType = document.getElementById('card-type');
+    const cardText = document.getElementById('card-text');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const truthCountEl = document.getElementById('truth-count');
+    const dareCountEl = document.getElementById('dare-count');
+
+    // Xáo trộn các lá bài khi bắt đầu
+    function shuffle(array) {
+        array.sort(() => Math.random() - 0.5);
+    }
+    shuffle(truthQuestions);
+    shuffle(dareChallenges);
+
+    function updateCounts() {
+        truthCountEl.textContent = `${truthQuestions.length} lá`;
+        dareCountEl.textContent = `${dareChallenges.length} lá`;
+        if (truthQuestions.length === 0) {
+            truthBtn.disabled = true;
+        }
+        if (dareChallenges.length === 0) {
+            dareBtn.disabled = true;
+        }
+    }
+
+    function drawCard(type) {
+        let list, title, color;
+        if (type === 'truth') {
+            if (truthQuestions.length === 0) return;
+            list = truthQuestions;
+            title = 'Sự Thật';
+            color = 'var(--truth-color)';
+        } else {
+            if (dareChallenges.length === 0) return;
+            list = dareChallenges;
+            title = 'Thử Thách';
+            color = 'var(--dare-color)';
+        }
+
+        // Rút lá bài cuối cùng (vì đã xáo trộn)
+        const item = list.pop();
+
+        cardType.textContent = title;
+        cardType.style.color = color;
+        cardText.textContent = item;
+
+        choiceContainer.classList.add('hide');
+        cardDisplay.classList.remove('hide');
+        updateCounts(); // Cập nhật số lá bài còn lại
+    }
+
+    function resetGame() {
+        cardDisplay.classList.add('hide');
+        choiceContainer.classList.remove('hide');
+        // Nếu hết bài, có thể thêm nút "Chơi lại từ đầu"
+        if (truthQuestions.length === 0 && dareChallenges.length === 0) {
+            // Tạm thời chỉ ẩn đi, bạn có thể thêm logic "Reset" lại 2 mảng
+            truthBtn.disabled = true;
+            dareBtn.disabled = true;
+        }
+    }
+
+    truthBtn.addEventListener('click', () => drawCard('truth'));
+    dareBtn.addEventListener('click', () => drawCard('dare'));
+    playAgainBtn.addEventListener('click', resetGame);
+
+    updateCounts(); // Cập nhật số lá bài lúc bắt đầu
+</script>
+
+</body>
+</html>

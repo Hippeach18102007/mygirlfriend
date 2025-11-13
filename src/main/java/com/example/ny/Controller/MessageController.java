@@ -20,7 +20,7 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Hôm nay đi chơi với em vui lắm. Anh thích nhìn em đi shopping vãi ý:>> \uD83E\uDEF6\n";
+    private final String loiNhan = "Nhớ em lắm rồi đó Loan owiii. 4 ngày nữaaaa \uD83E\uDEF6\n";
 
     @Value("${spring.mail.username}")
     private String myEmail;
@@ -117,5 +117,9 @@ public class MessageController {
     @GetMapping("/truth-or-dare")
     public String showTruthOrDarePage() {
         return "truth-or-dare";
+    }
+    @GetMapping("/thoi-tiet")
+    public String showWeatherPage() {
+        return "thoi-tiet";
     }
 }

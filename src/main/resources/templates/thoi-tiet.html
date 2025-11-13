@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Báo Tình Yêu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 20px; font-family: 'Quicksand', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb); /* Bầu trời xanh tím */
+            color: white; text-align: center;
+        }
+        h1 {
+            font-family: 'Playfair+Display', serif; font-size: 2.8em;
+            text-shadow: 0 0 15px rgba(255,255,255,0.5); margin-bottom: 40px;
+        }
+        .weather-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .weather-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            animation: fade-in 1s forwards;
+        }
+        .weather-card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2em; margin-top: 0; color: #fff;
+        }
+        .temp {
+            font-size: 3.5em; font-weight: bold; margin: 10px 0;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        .description {
+            font-size: 1.2em; font-style: italic; color: #ddd;
+        }
+        .advice {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+        .advice-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #ffd700; /* Màu vàng gold */
+        }
+
+        .navigation-links { display: flex; justify-content: center; gap: 15px; margin-top: 50px; }
+        .nav-button { background-color: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 10px 20px; font-size: 0.9em; font-weight: bold; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.3s; }
+        .nav-button:hover { background-color: white; color: black; }
+
+        @keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<h1>Dự Báo Thời Tiết Yêu Thương 🌤️</h1>
+
+<div class="weather-container">
+    <div class="weather-card">
+        <h2>Hà Nội</h2>
+        <div class="temp" id="hanoi-temp">...°C</div>
+        <div class="description" id="hanoi-desc">Đang tải...</div>
+        <div class="advice">
+            <span class="advice-title">Lời khuyên cho chị:</span>
+            <span id="hanoi-advice">...</span>
+        </div>
+    </div>
+
+    <div class="weather-card">
+        <h2>Vĩnh Yên</h2>
+        <div class="temp" id="vinh-yen-temp">...°C</div>
+        <div class="description" id="vinh-yen-desc">Đang tải...</div>
+        <div class="advice">
+            <span class="advice-title">Lời khuyên cho chị:</span>
+            <span id="vinh-yen-advice">...</span>
+        </div>
+    </div>
+</div>
+
+<div class="navigation-links">
+    <a th:href="@{/gui-chi}" class="nav-button">Quay lại Trang Thư</a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Tọa độ
+        const hanoiCoords = { lat: 21.0285, lon: 105.8542 };
+        const vinhYenCoords = { lat: 21.309, lon: 105.594 };
+
+        // Hàm gọi API
+        async function fetchWeather(lat, lon, cityId) {
+            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                const current = data.current;
+                const temp = Math.round(current.temperature_2m);
+                const feelsLike = Math.round(current.apparent_temperature);
+                const weatherCode = current.weather_code;
+
+                // Lấy mô tả và lời khuyên
+                const description = getWeatherDescription(weatherCode);
+                const advice = getClothingAdvice(feelsLike, weatherCode); // Dùng "feelsLike" để cho lời khuyên
+
+                // Cập nhật lên HTML
+                document.getElementById(`${cityId}-temp`).textContent = `${temp}°C`;
+                document.getElementById(`${cityId}-desc`).textContent = `${description} (Cảm giác như ${feelsLike}°C)`;
+                document.getElementById(`${cityId}-advice`).textContent = advice;
+
+            } catch (error) {
+                console.error(`Lỗi khi lấy thời tiết ${cityId}:`, error);
+                document.getElementById(`${cityId}-advice`).textContent = "Lỗi, không tải được dự báo :(";
+            }
+        }
+
+        // Hàm dịch code thời tiết (WMO) sang mô tả
+        function getWeatherDescription(code) {
+            const descriptions = {
+                0: "Trời quang mây ☀️",
+                1: "Trời trong",
+                2: "Ít mây 🌤️",
+                3: "Trời có mây ☁️",
+                45: "Sương mù",
+                48: "Sương mù dày đặc",
+                51: "Mưa phù nhẹ",
+                53: "Mưa phù vừa",
+                55: "Mưa phù dày",
+                61: "Mưa rào nhẹ 🌧️",
+                63: "Mưa rào vừa",
+                65: "Mưa to",
+                80: "Mưa rào nhẹ 🌧️",
+                81: "Mưa rào vừa",
+                82: "Mưa rào xối xả ⛈️"
+            };
+            return descriptions[code] || "Không rõ";
+        }
+
+        // --- HÀM QUAN TRỌNG NHẤT: ĐƯA RA LỜI KHUYÊN ---
+        function getClothingAdvice(feelsLike, weatherCode) {
+            let advice = "";
+
+            if (feelsLike > 30) {
+                advice = "Nóng lắm! Chị mặc đồ thật mỏng mát, uống nhiều nước và nhớ che nắng nhé.";
+            } else if (feelsLike > 25) {
+                advice = "Trời ấm áp. Mặc áo phông hoặc váy là xinh nhất rồi, chị yêu.";
+            } else if (feelsLike > 20) {
+                advice = "Thời tiết đẹp, hơi mát mẻ. Chị mang theo một áo khoác mỏng là vừa xinh.";
+            } else if (feelsLike > 15) {
+                advice = "Trời se lạnh rồi. Chị nhớ mặc áo dài tay và khoác áo gió nhé.";
+            } else {
+                advice = "Lạnh lắm đó! Chị phải mặc áo len, áo khoác dày, quàng khăn và đi tất cho em!";
+            }
+
+            // Kiểm tra mưa (mã 51-82)
+            if (weatherCode >= 51 && weatherCode <= 82) {
+                advice += " À, có vẻ như trời mưa, chị nhớ mang ô hoặc áo mưa nha! ☔";
+            }
+
+            return advice;
+        }
+
+        // Chạy
+        fetchWeather(hanoiCoords.lat, hanoiCoords.lon, 'hanoi');
+        fetchWeather(vinhYenCoords.lat, vinhYenCoords.lon, 'vinh-yen');
+    });
+</script>
+
+</body>
+</html>

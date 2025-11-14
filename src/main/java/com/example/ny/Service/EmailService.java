@@ -1,6 +1,5 @@
 package com.example.ny.Service;
 
-
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -16,24 +15,26 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    // Email đã được xác minh trên Brevo
+    private final String FROM_EMAIL = "daod1068@gmail.com";
+
     // Phương thức mới để gửi email có file đính kèm
     public void sendEmailWithAttachment(String to, String subject, String body, MultipartFile attachment) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            // true = multipart message (cho phép đính kèm file)
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setFrom("no-reply@yourdomain.com");
+            // SỬA LỖI Ở ĐÂY: Phải dùng email đã xác minh
+            helper.setFrom(FROM_EMAIL);
+
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body);
 
-            // Kiểm tra xem có file đính kèm không
             if (attachment != null && !attachment.isEmpty()) {
-                // Thêm file đính kèm
                 helper.addAttachment(
-                        attachment.getOriginalFilename(), // Tên file
-                        new ByteArrayResource(attachment.getBytes()) // Dữ liệu file
+                        attachment.getOriginalFilename(),
+                        new ByteArrayResource(attachment.getBytes())
                 );
             }
 
@@ -41,16 +42,22 @@ public class EmailService {
             System.out.println("Mail sent successfully!");
 
         } catch (Exception e) {
-            // Ném ngoại lệ để Controller có thể bắt và xử lý
             throw new RuntimeException("Failed to send email", e);
         }
-    }public void sendSimpleEmail(String to, String subject, String text) {
+    }
+
+    public void sendSimpleEmail(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+
+            // SỬA LỖI Ở ĐÂY: Thêm dòng setFrom
+            message.setFrom(FROM_EMAIL);
+
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
-            mailSender.send(message); // Giả sử bạn có biến mailSender đã được tiêm
+            mailSender.send(message);
+            System.out.println("Simple Mail sent successfully!");
         } catch (Exception e) {
             throw new RuntimeException("Failed to send email", e);
         }

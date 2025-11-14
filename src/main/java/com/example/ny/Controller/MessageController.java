@@ -20,10 +20,9 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Nhớ em lắm rồi đó Loan owiii. 4 ngày nữaaaa \uD83E\uDEF6\n";
+    private final String loiNhan = "Anh yêu em quá điiiiiiii\uD83E\uDEF6\n";
 
-    @Value("${spring.mail.username}")
-    private String myEmail;
+    // --- ĐÃ XÓA BIẾN "myEmail" LẤY TỪ @Value ---
 
     @Autowired
     private EmailService emailService;
@@ -50,7 +49,11 @@ public class MessageController {
             String subject = "Có lời nhắn từ " + tenChi + "!";
             String body = "Chị " + tenChi + " đã gửi lời nhắn cho bạn:\n\n\"" + replyMessage + "\"";
 
-            emailService.sendEmailWithAttachment(myEmail, subject, body, imageFile);
+            // --- SỬA LỖI Ở ĐÂY ---
+            // Chỉ định rõ email nhận thư, không dùng @Value
+            String emailTo = "ducdath04243@fpt.edu.vn";
+
+            emailService.sendEmailWithAttachment(emailTo, subject, body, imageFile);
 
             return ResponseEntity.ok("Lời nhắn của chị đã được gửi đi thành công!");
         } catch (Exception e) {

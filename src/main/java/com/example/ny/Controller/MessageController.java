@@ -20,7 +20,7 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Anh yêu em quá điiiiiiii\uD83E\uDEF6\n";
+    private final String loiNhan = "Anh yêu Loannnnnnnnn. #Cụt cứ cẩn thận đấyyyyyyyyyyyyyy\uD83E\uDEF6\n";
 
     // --- ĐÃ XÓA BIẾN "myEmail" LẤY TỪ @Value ---
 

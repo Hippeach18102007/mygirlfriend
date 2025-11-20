@@ -125,4 +125,8 @@ public class MessageController {
     public String showWeatherPage() {
         return "thoi-tiet";
     }
+    @GetMapping("/open-when")
+    public String showOpenWhenPage() {
+        return "open-when"; // Trả về file open-when.html
+    }
 }

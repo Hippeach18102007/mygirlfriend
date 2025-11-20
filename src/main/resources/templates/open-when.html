@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mở Khi Em...</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #fcf0f3; /* Màu hồng phấn nhẹ */
+            text-align: center;
+            padding: 20px;
+        }
+        h1 { color: #c74b5e; margin-bottom: 30px; }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .envelope {
+            background: #fff;
+            border-radius: 10px;
+            height: 180px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #f3d1d6;
+            overflow: hidden;
+        }
+
+        .envelope:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.15);
+            border-color: #c74b5e;
+        }
+
+        /* Trang trí nắp phong bì */
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            border-left: 125px solid transparent;
+            border-right: 125px solid transparent;
+            border-top: 90px solid #fce4ec; /* Màu nắp phong bì */
+            z-index: 1;
+        }
+
+        .content-label {
+            margin-top: 40px; /* Để tránh nắp phong bì */
+            z-index: 2;
+        }
+
+        .icon { font-size: 40px; margin-bottom: 10px; display: block;}
+        .title { font-weight: bold; color: #555; font-size: 18px;}
+
+        /* Modal (Cửa sổ bật lên) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+            animation: popUp 0.4s ease-out;
+            text-align: left;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        @keyframes popUp {
+            from {transform: scale(0.5); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover { color: #000; }
+
+        .letter-content {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-line; /* Giữ định dạng xuống dòng */
+        }
+
+        .letter-img {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>💌 Open When... (Mở Khi Em) 💌</h1>
+<p>Hãy chọn một phong bì phù hợp với tâm trạng của em lúc này nhé!</p>
+
+<div class="grid-container">
+    <div class="envelope" onclick="openLetter('miss')">
+        <div class="content-label">
+            <span class="icon">😢</span>
+            <span class="title">Khi em nhớ anh</span>
+        </div>
+    </div>
+
+    <div class="envelope" onclick="openLetter('sad')">
+        <div class="content-label">
+            <span class="icon">🌧️</span>
+            <span class="title">Khi em thấy buồn</span>
+        </div>
+    </div>
+
+    <div class="envelope" onclick="openLetter('mad')">
+        <div class="content-label">
+            <span class="icon">😡</span>
+            <span class="title">Khi em giận anh</span>
+        </div>
+    </div>
+
+    <div class="envelope" onclick="openLetter('happy')">
+        <div class="content-label">
+            <span class="icon">🥰</span>
+            <span class="title">Khi em thấy vui</span>
+        </div>
+    </div>
+
+    <div class="envelope" onclick="openLetter('tired')">
+        <div class="content-label">
+            <span class="icon">🔋</span>
+            <span class="title">Khi em thấy mệt mỏi</span>
+        </div>
+    </div>
+
+    <div class="envelope" onclick="openLetter('sleepless')">
+        <div class="content-label">
+            <span class="icon">🌙</span>
+            <span class="title">Khi em mất ngủ</span>
+        </div>
+    </div>
+</div>
+
+<div id="letterModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle" style="color: #c74b5e; text-align: center;">Tiêu đề</h2>
+        <hr style="border: 0; border-top: 1px dashed #ddd; margin: 20px 0;">
+        <div id="modalBody" class="letter-content">
+            Nội dung thư sẽ hiện ở đây...
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu nội dung các bức thư (BẠN SỬA NỘI DUNG Ở ĐÂY NHÉ)
+    const letters = {
+        'miss': {
+            title: "Gửi em, người đang nhớ anh",
+            content: "Anh biết khoảng cách đôi khi làm mình thấy trống vắng. Nhưng hãy nhìn lên bầu trời đi, chúng ta đang cùng nhìn thấy một mặt trăng đấy.\n\nAnh cũng nhớ em nhiều lắm. Hãy mở máy lên và gọi cho anh ngay nhé, dù anh đang làm gì anh cũng sẽ nghe máy!\n\nYêu em <3",
+            image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbW54b3I0bHpqM3l5b3I0bHpqM3l5b3I0bHpqM3l5L2dpZGYvZmlvbGEvc3RpY2tlcnMvdHJhbnNwYXJlbnQ/3oriO0OEd9QIDdllqo/giphy.gif" // Bạn có thể thay link ảnh của 2 bạn vào đây
+        },
+        'sad': {
+            title: "Đừng buồn nữa mà...",
+            content: "Ai đã làm công chúa của anh buồn thế? Nếu là người ngoài, mặc kệ họ đi, họ không xứng đáng để em bận tâm.\n\nNếu là do anh, thì cho anh xin lỗi nhé. Anh không bao giờ muốn thấy em buồn cả. Cười lên nào, nụ cười của em là đẹp nhất đấy!",
+            image: "https://media.giphy.com/media/3oEdv4hwTZFAjCED/giphy.gif" // Ảnh mèo ôm
+        },
+        'mad': {
+            title: "Hạ hỏa, hạ hỏa nào!",
+            content: "Anh biết em đang giận. Anh sai rồi (dù chưa biết sai gì nhưng cứ nhận trước).\n\nĐừng cau mày nữa, sẽ mau già lắm đấy. Hít sâu vào... Thở ra... Rồi, giờ hãy nhắn tin mắng anh đi, anh chịu hết. Đừng im lặng nhé!",
+            image: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif" // Ảnh hài hước xin lỗi
+        },
+        'happy': {
+            title: "Yeahhhh!",
+            content: "Thấy em vui là anh cũng vui lây luôn đó! Hãy giữ năng lượng này nhé.\n\nƯớc gì anh ở đó để cùng chia sẻ niềm vui này với em. Yêu em nhiều!",
+            image: "https://media.giphy.com/media/TdfyKrN7HGTIY/giphy.gif" // Ảnh ăn mừng
+        },
+        'tired': {
+            title: "Dựa vào vai anh này",
+            content: "Em đã vất vả rồi. Thế giới ngoài kia có áp lực quá thì về đây với anh nhé.\n\nHôm nay cho phép em lười biếng một chút. Không cần phải mạnh mẽ đâu. Ngủ một giấc thật ngon, ngày mai mọi chuyện sẽ ổn thôi.",
+            image: "https://media.giphy.com/media/ZBQhoZC0nqknSviPqT/giphy.gif"
+        },
+        'sleepless': {
+            title: "Ngủ đi cô nương",
+            content: "Lại thức khuya bấm điện thoại đúng không? Tắt máy ngay đi nào.\n\nNhắm mắt lại, đếm cừu đi. 1 con cừu, 2 con cừu... hay là đếm xem anh yêu em bao nhiêu nhé (cái này đếm đến sáng không hết đâu). Ngủ ngoan!",
+            image: "https://media.giphy.com/media/mguPrVJAnEHIY/giphy.gif"
+        }
+    };
+
+    function openLetter(type) {
+        const modal = document.getElementById("letterModal");
+        const title = document.getElementById("modalTitle");
+        const body = document.getElementById("modalBody");
+
+        const data = letters[type];
+
+        title.innerText = data.title;
+
+        // Tạo nội dung có cả chữ và ảnh (nếu có)
+        let htmlContent = data.content;
+        if(data.image) {
+            htmlContent += `<br><img src="${data.image}" class="letter-img">`;
+        }
+
+        body.innerHTML = htmlContent;
+        modal.style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("letterModal").style.display = "none";
+    }
+
+    // Đóng modal khi click bên ngoài
+    window.onclick = function(event) {
+        const modal = document.getElementById("letterModal");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>

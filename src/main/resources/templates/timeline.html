@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hành Trình Yêu Thương</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #ffe6e9;
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden; /* Ẩn thanh cuộn ngang */
+        }
+
+        h1 {
+            text-align: center;
+            font-family: 'Pacifico', cursive;
+            color: #ff4d6d;
+            font-size: 2.5rem;
+            margin: 30px 0;
+        }
+
+        /* Thanh dọc ở giữa */
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #ff99ac;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+            border-radius: 10px;
+        }
+
+        /* Hộp chứa nội dung */
+        .container {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+
+        /* Hình tròn trên thanh dọc */
+        .container::after {
+            content: '❤';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            right: -20px;
+            background-color: white;
+            border: 4px solid #ff4d6d;
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+            text-align: center;
+            line-height: 32px; /* Căn giữa trái tim */
+            color: #ff4d6d;
+            font-size: 18px;
+        }
+
+        /* Bên trái */
+        .left { left: 0; }
+
+        /* Bên phải */
+        .right { left: 50%; }
+
+        /* Chỉnh vị trí mũi tên và hình tròn cho bên trái */
+        .left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid white;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent white;
+        }
+
+        /* Chỉnh vị trí hình tròn bên phải */
+        .right::after { left: -20px; }
+
+        /* Chỉnh vị trí mũi tên bên phải */
+        .right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid white;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent white transparent transparent;
+        }
+
+        /* Nội dung bên trong hộp */
+        .content {
+            padding: 20px 30px;
+            background-color: white;
+            position: relative;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .content:hover {
+            transform: scale(1.02);
+        }
+
+        .content h2 {
+            color: #d63384;
+            margin-top: 0;
+        }
+
+        .date {
+            font-weight: bold;
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .mem-img {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        /* Responsive cho điện thoại (quan trọng) */
+        @media screen and (max-width: 600px) {
+            .timeline::after { left: 31px; }
+            .container { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .container::before { left: 60px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent white transparent transparent; }
+            .left::after, .right::after { left: 11px; }
+            .right { left: 0%; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Hành Trình Của Chúng Mình 💑</h1>
+
+<div class="timeline">
+    <div class="container left">
+        <div class="content">
+            <h2>Lời tỏ tình</h2>
+            <span class="date">24/09/2025</span>
+            <p>Ngày mà em chủ động tỏ tình anh:)) (Fun fact: Đợt đó mà chậm vài ngày là anh tỏ tình em đấy:> )</p>
+            <img src="https://media.giphy.com/media/3o7TKoWXm3okO1kgHC/giphy.gif" class="mem-img" alt="First meet">
+        </div>
+    </div>
+
+    <div class="container right">
+        <div class="content">
+            <h2>Ngày đầu chúng mình gặp nhau</h2>
+            <span class="date">18/10/2025</span>
+            <p>Có vài điều ở hôm đó mà anh chưa nói với em. Cảm ơn vì đã biến ngày sinh nhật của anh trở nên vui hơn và hạnh phúc hơn.</p>
+            <img src="https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif" class="mem-img">
+        </div>
+    </div>
+
+    <div class="container left">
+        <div class="content">
+            <h2>Kỉ niệm anh nhớ nhất</h2>
+            <span class="date">08/11/2025</span>
+            <p>Hôm đó mình đã đi xem phim Cục vàng của ngoại</p>
+            <iframe src="https://giphy.com/embed/tpVKvAabWt3G5csMkT" width="100%" height="200" frameBorder="0" class="giphy-embed" allowFullScreen></iframe>
+        </div>
+    </div>
+
+
+
+    <div class="container right">
+        <div class="content">
+            <h2>Hiện tại & Tương lai</h2>
+            <span class="date">Hôm nay</span>
+            <p>Cảm ơn em đã luôn ở bên cạnh anh. Mong rằng hành trình này sẽ kéo dài mãi mãi!</p>
+            <img src="https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif" class="mem-img">
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

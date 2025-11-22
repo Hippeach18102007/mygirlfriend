@@ -129,4 +129,8 @@ public class MessageController {
     public String showOpenWhenPage() {
         return "open-when"; // Trả về file open-when.html
     }
+    @GetMapping("/timeline")
+    public String showTimelinePage() {
+        return "timeline"; // Trả về file timeline.html
+    }
 }

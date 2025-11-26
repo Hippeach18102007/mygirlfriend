@@ -20,7 +20,7 @@ public class MessageController {
 
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Anh yêu Loannnnnnnnn. #Cụt cứ cẩn thận đấyyyyyyyyyyyyyy\uD83E\uDEF6\n";
+    private final String loiNhan = "Em bé đi đường cẩn thận nhaaaa. Anh yêu em. Ký tên: Ngôi nhà nhỏ của emm.\uD83E\uDEF6\n";
 
     // --- ĐÃ XÓA BIẾN "myEmail" LẤY TỪ @Value ---
 
@@ -132,5 +132,9 @@ public class MessageController {
     @GetMapping("/timeline")
     public String showTimelinePage() {
         return "timeline"; // Trả về file timeline.html
+    }
+    @GetMapping("/love-map")
+    public String showMapPage() {
+        return "love-map"; // Trả về file love-map.html
     }
 }

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cửa Tiệm Hạnh Phúc 🏪</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- PHẦN CSS (Giao diện) --- */
+        body {
+            background-color: #f3e5f5;
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Thanh hiển thị tiền */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+        }
+
+        .logo {
+            font-family: 'Fredoka One', cursive;
+            color: #9c27b0;
+            font-size: 1.5rem;
+        }
+
+        .wallet {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f3e5f5;
+            padding: 5px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            color: #7b1fa2;
+        }
+
+        .coin-icon { width: 25px; height: 25px; }
+
+        /* Khu vực điểm danh */
+        .earn-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .btn-checkin {
+            background: linear-gradient(45deg, #ff4081, #f50057);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(245, 0, 87, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn-checkin:active { transform: scale(0.95); }
+        .btn-checkin:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
+        /* Lưới sản phẩm */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover { transform: translateY(-10px); }
+
+        .product-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-bottom: 2px solid #f3e5f5;
+        }
+
+        .product-info {
+            padding: 15px;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            color: #f50057;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-buy {
+            background-color: #9c27b0;
+            color: white;
+            border: none;
+            padding: 8px 0;
+            width: 100%;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-buy:hover { background-color: #7b1fa2; }
+
+        .btn-back {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" class="btn-back">⬅ Về Trang Chủ</a>
+
+<div class="header">
+    <div class="logo">Love Store 🏪</div>
+    <div class="wallet">
+        <img src="https://cdn-icons-png.flaticon.com/512/138/138292.png" class="coin-icon">
+        <span id="user-balance">0</span> Xu
+    </div>
+</div>
+
+<div class="earn-section">
+    <button class="btn-checkin" onclick="dailyCheckIn()" id="checkinBtn">
+        📅 Điểm Danh Hàng Ngày (+100 Xu)
+    </button>
+    <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">
+        (Hoàn thành nhiệm vụ ngoài đời để anh cộng thêm xu nhé!)
+    </p>
+</div>
+
+<div class="shop-grid" id="shop-container">
+</div>
+
+<script>
+    // 1. DANH SÁCH SẢN PHẨM (Bạn có thể thêm bớt tùy ý)
+    const products = [
+        { name: "Vé Đi Xem Phim", price: 500, img: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif" },
+        { name: "Trà Sữa Full Topping", price: 200, img: "https://media.giphy.com/media/LpdlqTkgO2Lwwixwv7/giphy.gif" },
+        { name: "1 Lần Gội Đầu", price: 300, img: "https://media.giphy.com/media/ZBQhoZC0nqknSviPqT/giphy.gif" },
+        { name: "Anh Rửa Bát 1 Ngày", price: 150, img: "https://media.giphy.com/media/xT1R9YBfq6y6Y7xLzO/giphy.gif" },
+        { name: "Massage Chân 30p", price: 250, img: "https://media.giphy.com/media/l41lFw057lAJcYt0Y/giphy.gif" },
+        { name: "Vé 'Xóa Dỗi'", price: 1000, img: "https://media.giphy.com/media/3o7TKoWXm3okO1kgHC/giphy.gif" },
+        { name: "Ăn Đêm (Ship Tận Giường)", price: 400, img: "https://media.giphy.com/media/12FpQVlmcsi49i/giphy.gif" },
+        { name: "Ôm 1 Cái (Free)", price: 0, img: "https://media.giphy.com/media/4N1wOi78ZGz54SYCtA/giphy.gif" }
+    ];
+
+    // 2. LOGIC VÍ TIỀN (Lưu trong trình duyệt của cô ấy)
+    let balance = parseInt(localStorage.getItem('loveCoins')) || 0;
+
+    const balanceEl = document.getElementById('user-balance');
+
+    function updateBalanceUI() {
+        balanceEl.innerText = balance;
+    }
+    updateBalanceUI(); // Chạy ngay khi mở trang
+
+    // 3. HIỂN THỊ SẢN PHẨM LÊN MÀN HÌNH
+    const shopContainer = document.getElementById('shop-container');
+    products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+                <img src="${p.img}" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">
+                        <img src="https://cdn-icons-png.flaticon.com/512/138/138292.png" width="15">
+                        ${p.price} Xu
+                    </div>
+                    <button class="btn-buy" onclick="buyItem('${p.name}', ${p.price})">MUA NGAY</button>
+                </div>
+            `;
+        shopContainer.appendChild(card);
+    });
+
+    // 4. CHỨC NĂNG ĐIỂM DANH (Kiếm tiền)
+    function dailyCheckIn() {
+        const lastCheckIn = localStorage.getItem('lastCheckInDate');
+        const today = new Date().toISOString().slice(0, 10);
+
+        if (lastCheckIn === today) {
+            alert("Hôm nay em điểm danh rồi mà! Mai quay lại nhé 😘");
+            return;
+        }
+
+        // Cộng tiền
+        balance += 100;
+        localStorage.setItem('loveCoins', balance);
+        localStorage.setItem('lastCheckInDate', today);
+
+        updateBalanceUI();
+        alert("Điểm danh thành công! Em nhận được 100 Xu ❤️");
+
+        // Khóa nút điểm danh
+        disableCheckinBtn();
+    }
+
+    function disableCheckinBtn() {
+        const btn = document.getElementById('checkinBtn');
+        btn.innerText = "Đã Điểm Danh Hôm Nay";
+        btn.disabled = true;
+    }
+
+    // Kiểm tra xem hôm nay đã điểm danh chưa khi vừa vào trang
+    const lastCheckIn = localStorage.getItem('lastCheckInDate');
+    const today = new Date().toISOString().slice(0, 10);
+    if (lastCheckIn === today) {
+        disableCheckinBtn();
+    }
+
+    // 5. CHỨC NĂNG MUA HÀNG (Gửi thông báo về Discord/Telegram)
+    function buyItem(name, price) {
+        // Kiểm tra tiền
+        if (balance < price) {
+            alert("Huhu, em không đủ xu rồi! Hãy chăm chỉ yêu anh để kiếm thêm nhé 🥺");
+            return;
+        }
+
+        if(confirm(`Em có chắc muốn dùng ${price} Xu để mua "${name}" không?`)) {
+            // Trừ tiền ngay lập tức (cho cảm giác mượt)
+            balance -= price;
+            localStorage.setItem('loveCoins', balance);
+            updateBalanceUI();
+
+            // Gửi yêu cầu về Server (Java) để báo tin
+            // Server sẽ dùng Telegram hoặc Discord Service để báo cho bạn
+            fetch(`/api/buy-item?itemName=${encodeURIComponent(name)}&price=${price}`, {
+                method: 'POST'
+            })
+                .then(res => res.text())
+                .then(data => {
+                    // Thông báo thành công từ Server trả về
+                    alert(data);
+                })
+                .catch(err => {
+                    alert("Lỗi mạng! Xu đã trừ nhưng anh chưa nhận được tin. Em chụp màn hình gửi anh nhé!");
+                });
+        }
+    }
+</script>
+</body>
+</html>

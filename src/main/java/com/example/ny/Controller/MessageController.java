@@ -1,6 +1,7 @@
 package com.example.ny.Controller;
 
 
+import com.example.ny.Service.DiscordService;
 import com.example.ny.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,8 @@ public class MessageController {
 
     @Autowired
     private EmailService emailService;
-
+    @Autowired
+    private DiscordService discordService;
     @GetMapping("/gui-chi")
     public String showLetter(Model model) {
         model.addAttribute("tenNguoiNhan", tenChi);
@@ -136,5 +138,34 @@ public class MessageController {
     @GetMapping("/love-map")
     public String showMapPage() {
         return "love-map"; // Trả về file love-map.html
+    }
+    @GetMapping("/ket-sat")
+    public String showSafePage() {
+        return "safe"; // Trả về file safe.html
+    }
+    @GetMapping("/store")
+    public String showStorePage() {
+        return "store";
+    }
+
+    @PostMapping("/api/buy-item")
+    @ResponseBody
+    public ResponseEntity<String> buyItem(@RequestParam("itemName") String itemName, @RequestParam("price") int price) {
+        try {
+            // Nội dung tin nhắn (Discord hỗ trợ icon rất đẹp)
+            String message = "🚨 **ĐƠN HÀNG MỚI!** 🚨\n" +
+                    "--------------------------------\n" +
+                    "🎁 **Vật phẩm:** " + itemName + "\n" +
+                    "💰 **Giá:** " + price + " Xu\n" +
+                    "--------------------------------\n" +
+                    "👉 *Anh mau thực hiện yêu cầu của vợ đi nhé!*";
+
+            // Gửi qua Discord
+            discordService.sendNotification(message);
+
+            return ResponseEntity.ok("Mua thành công! Đã báo tin qua Discord.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống");
+        }
     }
 }

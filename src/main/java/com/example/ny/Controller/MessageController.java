@@ -139,7 +139,7 @@ public class MessageController {
     public String showMapPage() {
         return "love-map"; // Trả về file love-map.html
     }
-    @GetMapping("/ket-sat")
+    @GetMapping("/safe")
     public String showSafePage() {
         return "safe"; // Trả về file safe.html
     }

@@ -181,7 +181,7 @@
     <img src="https://media.giphy.com/media/26FLdmIp6wJr91J4Y/giphy.gif" class="secret-img" alt="Secret">
 
     <div class="secret-note">
-      "Chúc mừng em đã mở được tim anh! <br>
+      "Chúc mừng em đã mở được tim anh! Phần thưởng là ... tùy em chọn <br>
       Yêu em 3000 ❤️"
     </div>
 
@@ -210,10 +210,9 @@
     <div class="handle"></div>
   </div>
 </div>
-
 <script>
   // --- CẤU HÌNH MẬT MÃ Ở ĐÂY ---
-  const SECRET_CODE = "" +
+  const SECRET_CODE = "39174013" +
           ""; // Ví dụ: Ngày 01/01/2024
 
   let currentInput = "";
@@ -226,7 +225,7 @@
   }
 
   function press(num) {
-    if (currentInput.length < 6) { // Giới hạn 6 số
+    if (currentInput.length < 10) { // Giới hạn 6 số
       currentInput += num;
       updateScreen();
     }

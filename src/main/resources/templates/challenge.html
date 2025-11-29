@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 Ngày Chờ Anh (Quân Sự 2025)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS GIAO DIỆN --- */
+        body {
+            background-color: #f0f4f8;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Patrick Hand', cursive;
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            max-width: 600px;
+        }
+
+        /* Đồng hồ đếm ngược */
+        .countdown-box {
+            background: #2d3436;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            text-align: center;
+            font-size: 1.1rem;
+            border: 2px solid #fff;
+        }
+
+        /* Lưới 30 ngày */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 12px;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 50px;
+        }
+
+        .day-box {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #34495e;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .day-box:hover { transform: translateY(-3px); }
+
+        /* TRẠNG THÁI Ô: KHÓA */
+        .day-box.locked {
+            background: #dfe6e9;
+            color: #b2bec3;
+            cursor: not-allowed;
+        }
+        .day-box.locked::after { content: "🔒"; font-size: 1rem; display: block; margin-top: 5px;}
+
+        /* TRẠNG THÁI Ô: HÔM NAY (ACTIVE) */
+        .day-box.active {
+            background: #ffeaa7;
+            border: 2px solid #fdcb6e;
+            color: #d35400;
+            animation: pulse 2s infinite;
+        }
+
+        /* TRẠNG THÁI Ô: HOÀN THÀNH */
+        .day-box.completed {
+            background: #55efc4;
+            color: #00b894;
+        }
+        .day-box.completed::after { content: "✔"; font-size: 1.2rem; display: block; }
+
+        /* --- GIAO DIỆN QUÂN SỰ (NGÀY 23-30) --- */
+        .day-box.military {
+            background-color: #57606f; /* Xám xanh lính */
+            color: #fff;
+            border: 2px dashed #a4b0be;
+        }
+
+        .day-box.military::before {
+            content: "🪖";
+            font-size: 0.8rem;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        .day-box.military.active {
+            background-color: #7bed9f; /* Xanh lá sáng */
+            color: #2f3542;
+            border: 3px solid #2ed573;
+            animation: pulse-military 1.5s infinite;
+        }
+
+        .day-box.military.completed {
+            background: #2ed573;
+            color: white;
+            border: none;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(253, 203, 110, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(253, 203, 110, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(253, 203, 110, 0); }
+        }
+
+        @keyframes pulse-military {
+            0% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 213, 115, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+        }
+
+        /* MODAL (Cửa sổ nhiệm vụ) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            animation: zoomIn 0.3s;
+        }
+
+        @keyframes zoomIn {
+            from {transform: scale(0.5); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+
+        .task-title { color: #e17055; font-family: 'Patrick Hand', cursive; font-size: 2rem; margin: 0; }
+        .military-title { color: #2ed573; font-family: 'Stencil', 'Impact', sans-serif; text-transform: uppercase; }
+
+        .task-desc { font-size: 1.1rem; line-height: 1.6; margin: 20px 0; color: #2d3436; }
+
+        .btn-done {
+            background: #00b894;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-done:hover { background: #00a884; }
+
+        .btn-close {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        /* Nút Back */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: bold;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" class="back-btn">⬅ Trang chủ</a>
+
+<h1>Chiến Dịch 30 Ngày Yêu Xa 🇻🇳</h1>
+<div class="subtitle">Anh đi quân sự 8 ngày thôi. Mỗi ngày em vào đây làm một nhiệm vụ nhỏ để chúng mình vẫn gần nhau nhé!</div>
+
+<div class="countdown-box" id="countdown">Đang tải thời gian...</div>
+
+<div class="grid-container" id="grid">
+</div>
+
+<div class="modal" id="taskModal">
+    <div class="modal-content">
+        <span class="btn-close" onclick="closeModal()">&times;</span>
+        <h2 class="task-title" id="modalDay">Ngày 1</h2>
+        <div class="task-desc" id="modalTask">Nội dung nhiệm vụ...</div>
+        <button class="btn-done" onclick="completeTask()">Em đã hoàn thành!</button>
+    </div>
+</div>
+
+<script>
+    // --- CẤU HÌNH THỜI GIAN ---
+    const START_DATE = new Date("2025-12-01T00:00:00");
+    const END_DATE = new Date("2025-12-30T23:59:59");
+    const MILITARY_START_DAY = 23; // Từ ngày 23 trở đi là chế độ quân sự
+
+    // --- DANH SÁCH 30 NHIỆM VỤ ---
+    const tasks = [
+        // GIAI ĐOẠN 1: 22 Ngày đầu (Nhẹ nhàng)
+        "Ngày 1: Ngày đầu tiên xa nhau. Gửi cho anh một tấm ảnh em cười thật tươi làm động lực nhé.",
+        "Ngày 2: Kể cho anh nghe một chuyện vui hôm nay của em.",
+        "Ngày 3: Nhắc nhở: Em đã uống đủ nước chưa? Chụp cốc nước gửi anh kiểm tra.",
+        "Ngày 4: Gửi cho anh link một bài hát em đang nghe nhiều nhất.",
+        "Ngày 5: Hôm nay em muốn ăn gì? Gửi ảnh món đó cho anh xem 'ăn ké' bằng mắt.",
+        "Ngày 6: Soi gương và tự khen mình xinh đẹp 3 lần! Em là nhất.",
+        "Ngày 7: Một tuần rồi. Gửi voice chat chúc anh ngủ ngon thật ngọt ngào.",
+        "Ngày 8: Chụp ảnh bầu trời chỗ em và gửi cho anh.",
+        "Ngày 9: Viết tên anh lên giấy, vẽ thêm trái tim rồi chụp lại.",
+        "Ngày 10: Sắp đến giai đoạn anh huấn luyện căng thẳng rồi, chuẩn bị tinh thần nhé!",
+        "Ngày 11: Em thích nhất bộ phận nào trên gương mặt anh? Nói thật lòng nha.",
+        "Ngày 12: Đắp mặt nạ thư giãn đi cô nương, nhớ giữ gìn nhan sắc đợi anh về.",
+        "Ngày 13: Gửi cho anh một meme hoặc video hài hước để anh xả stress.",
+        "Ngày 14: Hôm nay anh nhớ em quá. Em có nhớ anh không?",
+        "Ngày 15: Tự mua cho mình một món ăn vặt yêu thích coi như anh mời.",
+        "Ngày 16: Nếu rảnh, hãy gọi điện về cho mẹ anh hỏi thăm sức khỏe một chút nhé.",
+        "Ngày 17: Chụp ảnh góc làm việc hoặc góc học tập của em.",
+        "Ngày 18: Lên danh sách 3 địa điểm mình sẽ đi chơi khi anh về.",
+        "Ngày 19: Tìm một tấm ảnh hồi bé của em (nếu có) và gửi cho anh.",
+        "Ngày 20: Chỉ còn 3 ngày nữa là đến giai đoạn cao điểm. Em hãy nói một lời động viên anh đi.",
+        "Ngày 21: Chuẩn bị tinh thần làm hậu phương vững chắc chưa?",
+        "Ngày 22: Ngày cuối trước khi vào đợt huấn luyện căng! Gửi anh một nụ hôn gió.",
+
+        // GIAI ĐOẠN 2: 8 Ngày cuối (Quân sự)
+        "Ngày 23 (NHẬP TRẠI): Bắt đầu chuỗi ngày kỷ luật thép! Ở nhà ngoan, đừng thức khuya nhé! 🪖",
+        "Ngày 24 (HUẤN LUYỆN): Trong này ăn ngủ đúng giờ lắm. Em cũng phải ăn uống đầy đủ thay phần anh nhé.",
+        "Ngày 25 (NỖI NHỚ): Nhớ em quá! Nhiệm vụ hôm nay: Ôm gấu bông anh tặng và ngủ sớm trước 11h.",
+        "Ngày 26 (CỐ GẮNG): Anh đang tập luyện vất vả. Hãy gửi một tin nhắn cổ vũ thật dài để khi nào được cầm máy anh đọc.",
+        "Ngày 27 (DỌN DẸP): Sắp về rồi! Hôm nay em hãy dọn dẹp phòng sạch sẽ để đón may mắn (và đón anh).",
+        "Ngày 28 (LÀM ĐẸP): Chuẩn bị bộ đồ đẹp nhất để hôm kia đi đón anh nhé.",
+        "Ngày 29 (ĐẾM NGƯỢC): Ngày cuối cùng trong trại! Anh sắp được gặp em rồi! Hồi hộp không?",
+        "Ngày 30 (VỀ NHÀ): ANH VỀ RỒI! Nhiệm vụ cuối cùng: Chạy ra ôm anh ngay lập tức! ❤️"
+    ];
+
+    const grid = document.getElementById('grid');
+    const modal = document.getElementById('taskModal');
+    const countdownEl = document.getElementById('countdown');
+    let currentOpenDay = 0;
+
+    // --- KHỞI TẠO LƯỚI ---
+    function initGrid() {
+        const now = new Date();
+        const diffTime = now - START_DATE;
+        // Tính xem hôm nay là ngày thứ mấy (ví dụ: ngày 1, ngày 2...)
+        let currentDayIndex = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Xử lý logic nếu chưa đến ngày hoặc đã quá ngày
+        if (now < START_DATE) currentDayIndex = 0;
+
+        // Render 30 ô
+        for (let i = 1; i <= 30; i++) {
+            const box = document.createElement('div');
+            box.className = 'day-box';
+            box.innerText = i;
+
+            // Thêm class quân sự cho 8 ngày cuối
+            if (i >= MILITARY_START_DAY) {
+                box.classList.add('military');
+            }
+
+            const isDone = localStorage.getItem('task_day_' + i) === 'true';
+
+            if (i <= currentDayIndex) {
+                // Ngày đã qua hoặc hôm nay
+                if (isDone) {
+                    box.classList.add('completed');
+                    box.onclick = () => showTask(i, true); // Xem lại (chỉ đọc)
+                } else if (i === currentDayIndex) {
+                    box.classList.add('active'); // Ngày hiện tại chưa làm
+                    box.onclick = () => showTask(i, false);
+                } else {
+                    // Ngày quá khứ quên làm -> Cho phép làm bù (Màu cam nhạt)
+                    box.style.background = "#fab1a0";
+                    box.style.color = "#fff";
+                    box.onclick = () => showTask(i, false);
+                }
+            } else {
+                // Ngày tương lai -> Khóa
+                box.classList.add('locked');
+                box.onclick = () => {
+                    if (i >= MILITARY_START_DAY) {
+                        alert("⛔ KHU VỰC QUÂN SỰ! Chưa đến ngày giải mật tài liệu này! 🪖");
+                    } else {
+                        alert("Chưa đến ngày này đâu bé ơi! Kiên nhẫn chờ đợi nha ❤️");
+                    }
+                };
+            }
+
+            grid.appendChild(box);
+        }
+    }
+
+    // --- HIỂN THỊ MODAL NHIỆM VỤ ---
+    function showTask(day, readOnly) {
+        currentOpenDay = day;
+        let titleText = "Nhiệm vụ Ngày " + day;
+        const modalTitle = document.getElementById('modalDay');
+
+        // Đổi giao diện modal nếu là ngày quân sự
+        if (day >= MILITARY_START_DAY) {
+            titleText = "🪖 QUÂN SỰ - NGÀY " + day;
+            modalTitle.classList.add('military-title');
+        } else {
+            modalTitle.classList.remove('military-title');
+        }
+
+        modalTitle.innerText = titleText;
+        document.getElementById('modalTask').innerText = tasks[day-1];
+
+        const btn = document.querySelector('.btn-done');
+        if (readOnly) {
+            btn.style.display = 'none'; // Đã xong thì ẩn nút đi
+        } else {
+            btn.style.display = 'block';
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    // --- HOÀN THÀNH NHIỆM VỤ ---
+    function completeTask() {
+        if (confirm("Em chắc chắn đã hoàn thành nhiệm vụ này chứ?")) {
+            // 1. Lưu vào trình duyệt (để lần sau vào vẫn thấy xanh)
+            localStorage.setItem('task_day_' + currentOpenDay, 'true');
+
+            // 2. Chuẩn bị nội dung gửi Server
+            const taskContent = tasks[currentOpenDay-1];
+            let prefix = "";
+            if (currentOpenDay >= MILITARY_START_DAY) {
+                prefix = "[QUÂN SỰ KHẨN CẤP] ";
+            }
+            const msgToSend = prefix + taskContent;
+
+            // 3. Gọi API (Kết nối với Controller bạn đã sửa)
+            fetch(`/api/complete-challenge?day=${currentOpenDay}&msg=${encodeURIComponent(msgToSend)}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error("Chưa đến ngày mở khóa (Check Server)");
+                    }
+                })
+                .then(data => {
+                    alert(data); // Hiện thông báo từ Server
+                    location.reload(); // Tải lại trang
+                })
+                .catch(err => {
+                    alert("Lỗi: " + err.message);
+                });
+        }
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    // --- ĐỒNG HỒ ĐẾM NGƯỢC THÔNG MINH ---
+    setInterval(() => {
+        const now = new Date();
+
+        // Trường hợp 1: Chưa đến ngày 01/12
+        if (now < START_DATE) {
+            const distanceStart = START_DATE - now;
+            const hours = Math.floor((distanceStart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distanceStart % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distanceStart % (1000 * 60)) / 1000);
+
+            countdownEl.innerText = `⏳ CHỜ LỆNH XUẤT PHÁT: Còn ${hours}g ${minutes}p ${seconds}s nữa sẽ mở khóa Ngày 1!`;
+            countdownEl.style.backgroundColor = "#e17055"; // Cam
+            return;
+        }
+
+        // Trường hợp 2: Đang trong thời gian 30 ngày
+        const distance = END_DATE - now;
+        if (distance < 0) {
+            // Đã qua ngày 30/12
+            countdownEl.innerText = "🎉 CHÚC MỪNG! ANH ĐÃ HOÀN THÀNH NVQS VÀ TRỞ VỀ! ❤️";
+            countdownEl.style.backgroundColor = "#00b894"; // Xanh
+        } else {
+            // Đang đếm ngược
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+            // Đổi màu nếu vào giai đoạn quân sự
+            if (now > new Date("2025-12-23T00:00:00")) {
+                countdownEl.innerText = `🪖 GIAI ĐOẠN QUÂN SỰ: Còn ${days} ngày ${hours} giờ nữa là anh về!`;
+                countdownEl.style.backgroundColor = "#57606f"; // Xám lính
+            } else {
+                countdownEl.innerText = `❤️ ĐANG YÊU XA: Còn ${days} ngày ${hours} giờ nữa là anh về!`;
+                countdownEl.style.backgroundColor = "#2d3436"; // Đen
+            }
+        }
+    }, 1000);
+
+    // Chạy khởi tạo
+    initGrid();
+
+</script>
+</body>
+</html>

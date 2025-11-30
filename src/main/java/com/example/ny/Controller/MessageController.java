@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class MessageController {
@@ -231,6 +233,50 @@ public class MessageController {
 
             discordService.sendNotification(message);
             return ResponseEntity.ok("Giỏi lắm! Anh đã nhận được tín hiệu ở đơn vị rồi ❤️");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi kết nối");
+        }
+    }
+    private final LocalDate XMAS_DATE = LocalDate.of(2025, 12, 25);
+
+    // Danh sách phần quà bên trong các hộp (Bạn tự sửa nhé)
+    private final Map<Integer, String> GIFTS = new HashMap<>() {{
+        put(1, "Voucher 150k ở Thành Đô");
+        put(2, "Voucher 200k ở Winmart");
+        put(3, "Voucher 200k ở Ôsc sên");
+    }};
+
+    @GetMapping("/christmas")
+    public String showChristmasPage() {
+        return "christmas"; // Trả về file christmas.html
+    }
+
+    @PostMapping("/api/open-gift")
+    @ResponseBody
+    public ResponseEntity<String> openGift(@RequestParam("boxId") int boxId) {
+        LocalDate today = LocalDate.now();
+
+        // 1. Kiểm tra ngày
+        if (today.isBefore(XMAS_DATE)) {
+            return ResponseEntity.badRequest().body("Ho Ho Ho! Ông già Noel chưa đến! Đợi đến 25/12 nhé bé ngoan 🎅");
+        }
+
+        // 2. Lấy tên món quà
+        String giftName = GIFTS.getOrDefault(boxId, "Một nụ hôn nồng cháy");
+
+        try {
+            // 3. Gửi thông báo Discord
+            String message = "🎄 **GIÁNG SINH AN LÀNH!** 🎄\n" +
+                    "--------------------------------\n" +
+                    "🎁 **Vợ đã chọn Hộp quà số:** " + boxId + "\n" +
+                    "✨ **Phần thưởng:** " + giftName + "\n" +
+                    "--------------------------------\n" +
+                    "👉 *Anh hãy chuẩn bị quà để trao tay ngay nhé!*";
+
+            discordService.sendNotification(message);
+
+            // Trả về tên món quà để hiện lên màn hình
+            return ResponseEntity.ok(giftName);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi kết nối");
         }

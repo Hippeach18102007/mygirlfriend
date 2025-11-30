@@ -1,10 +1,8 @@
 package com.example.ny.Controller;
 
-
 import com.example.ny.Service.DiscordService;
 import com.example.ny.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,21 +16,27 @@ import java.util.Map;
 
 @Controller
 public class MessageController {
-    @GetMapping("/")
-    public String redirectToLetter() {
-        return "redirect:/gui-chi";
-    }
 
+    // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
     private final String loiNhan = "Em bé đi đường cẩn thận nhaaaa. Anh yêu em. Ký tên: Ngôi nhà nhỏ của emm.\uD83E\uDEF6\n";
 
-    // --- ĐÃ XÓA BIẾN "myEmail" LẤY TỪ @Value ---
+    // Email nhận thông báo (cho phần vòng quay may mắn)
+    private final String myEmail = "ducdath04243@fpt.edu.vn";
 
     @Autowired
     private EmailService emailService;
+
     @Autowired
     private DiscordService discordService;
+
+    // --- CÁC TRANG VIEW ---
+
+    @GetMapping("/")
+    public String redirectToLetter() {
+        return "redirect:/gui-chi";
+    }
 
     @GetMapping("/gui-chi")
     public String showLetter(Model model) {
@@ -42,26 +46,31 @@ public class MessageController {
         return "letter";
     }
 
-    @GetMapping("/ghep-hinh")
-    public String showPuzzlePage() {
-        return "ghep-hinh";
-    }
-
-    // Cập nhật phương thức POST
+    // --- XỬ LÝ GỬI LỜI NHẮN (ĐÃ SỬA SANG DISCORD) ---
     @PostMapping("/gui-chi")
     public ResponseEntity<String> handleReply(
             @RequestParam("reply_message") String replyMessage,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
-            String subject = "Có lời nhắn từ " + tenChi + "!";
-            String body = "Chị " + tenChi + " đã gửi lời nhắn cho bạn:\n\n\"" + replyMessage + "\"";
+            // Tạo nội dung tin nhắn gửi về Discord
+            StringBuilder message = new StringBuilder();
+            message.append("💌 **THƯ MỚI TỪ ").append(tenChi.toUpperCase()).append("!** 💌\n");
+            message.append("--------------------------------\n");
+            message.append("📝 **Nội dung:**\n");
+            message.append("> ").append(replyMessage).append("\n");
 
-            // --- SỬA LỖI Ở ĐÂY ---
-            // Chỉ định rõ email nhận thư, không dùng @Value
-            String emailTo = "ducdath04243@fpt.edu.vn";
+            // Kiểm tra xem có ảnh không
+            if (imageFile != null && !imageFile.isEmpty()) {
+                message.append("--------------------------------\n");
+                message.append("📸 **Lưu ý:** Chị ấy có gửi kèm một bức ảnh! (Hãy kiểm tra server hoặc folder upload)\n");
+            }
 
-            emailService.sendEmailWithAttachment(emailTo, subject, body, imageFile);
+            message.append("--------------------------------\n");
+            message.append("👉 *Mau vào rep tin nhắn của vợ đi nhé!*");
+
+            // Gửi thông báo qua Discord
+            discordService.sendNotification(message.toString());
 
             return ResponseEntity.ok("Lời nhắn của chị đã được gửi đi thành công!");
         } catch (Exception e) {
@@ -70,33 +79,34 @@ public class MessageController {
         }
     }
 
+    // --- CÁC TRANG CHỨC NĂNG KHÁC ---
+
+    @GetMapping("/ghep-hinh")
+    public String showPuzzlePage() {
+        return "ghep-hinh";
+    }
+
     @GetMapping("/ky-niem")
     public String showAlbumPage() {
-        return "ky-niem"; // Trả về file ky-niem.html trong thư mục templates
+        return "ky-niem";
     }
 
     @GetMapping("/nghe-nhac")
     public String showMusicPage() {
-        return "nhac"; // Trả về file nhac.html
+        return "nhac";
     }
 
     @GetMapping("/dem-ngay")
     public String showCountdownPage() {
-        return "dem-ngay"; // Trả về file dem-ngay.html
+        return "dem-ngay";
     }
 
+    // --- PHẦN VÒNG QUAY MAY MẮN ---
     static class PrizeDto {
         private String prize;
-
-        public String getPrize() {
-            return prize;
-        }
-
-        public void setPrize(String prize) {
-            this.prize = prize;
-        }
+        public String getPrize() { return prize; }
+        public void setPrize(String prize) { this.prize = prize; }
     }
-    // Đảm bảo bạn đã tiêm EmailService
 
     @GetMapping("/vong-quay")
     public String showWheelPage() {
@@ -104,21 +114,23 @@ public class MessageController {
     }
 
     @PostMapping("/vong-quay/thong-bao")
-    @ResponseBody // Rất quan trọng, để trả về dữ liệu thay vì một trang HTML
+    @ResponseBody
     public ResponseEntity<String> notifyPrize(@RequestBody PrizeDto prizeDto) {
         try {
             String prize = prizeDto.getPrize();
-            String emailTo = "ducdath04243@fpt.edu.vn"; // <-- THAY EMAIL CỦA BẠN VÀO ĐÂY
+            // Phần này vẫn giữ Email như cũ (hoặc bạn có thể đổi sang Discord nếu thích)
             String subject = "Chúc mừng! Bạn gái đã quay trúng thưởng!";
             String text = "Bạn gái của bạn vừa quay Vòng Quay May Mắn và đã trúng phần thưởng: \"" + prize + "\".\n\nHãy chuẩn bị thực hiện nhé!";
 
-            emailService.sendSimpleEmail(emailTo, subject, text);
+            emailService.sendSimpleEmail(myEmail, subject, text);
 
             return ResponseEntity.ok("Thông báo đã được gửi.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi gửi email.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi gửi thông báo.");
         }
     }
+
+    // --- CÁC MINI GAME KHÁC ---
 
     @GetMapping("/mon-an")
     public String showFoodPickerPage() {
@@ -152,23 +164,25 @@ public class MessageController {
 
     @GetMapping("/open-when")
     public String showOpenWhenPage() {
-        return "open-when"; // Trả về file open-when.html
+        return "open-when";
     }
 
     @GetMapping("/timeline")
     public String showTimelinePage() {
-        return "timeline"; // Trả về file timeline.html
+        return "timeline";
     }
 
     @GetMapping("/love-map")
     public String showMapPage() {
-        return "love-map"; // Trả về file love-map.html
+        return "love-map";
     }
 
     @GetMapping("/safe")
     public String showSafePage() {
-        return "safe"; // Trả về file safe.html
+        return "safe";
     }
+
+    // --- CỬA HÀNG (DISCORD) ---
 
     @GetMapping("/store")
     public String showStorePage() {
@@ -179,7 +193,6 @@ public class MessageController {
     @ResponseBody
     public ResponseEntity<String> buyItem(@RequestParam("itemName") String itemName, @RequestParam("price") int price) {
         try {
-            // Nội dung tin nhắn (Discord hỗ trợ icon rất đẹp)
             String message = "🚨 **ĐƠN HÀNG MỚI!** 🚨\n" +
                     "--------------------------------\n" +
                     "🎁 **Vật phẩm:** " + itemName + "\n" +
@@ -187,7 +200,6 @@ public class MessageController {
                     "--------------------------------\n" +
                     "👉 *Anh mau thực hiện yêu cầu của vợ đi nhé!*";
 
-            // Gửi qua Discord
             discordService.sendNotification(message);
 
             return ResponseEntity.ok("Mua thành công! Đã báo tin qua Discord.");
@@ -196,9 +208,11 @@ public class MessageController {
         }
     }
 
+    // --- THỬ THÁCH 30 NGÀY (DISCORD) ---
+
     @GetMapping("/challenge")
     public String showChallengePage() {
-        return "challenge"; // Trả về file challenge.html
+        return "challenge";
     }
 
     @PostMapping("/api/complete-challenge")
@@ -208,16 +222,13 @@ public class MessageController {
         LocalDate startDate = LocalDate.of(2025, 12, 1);
         LocalDate today = LocalDate.now();
 
-        // Tính ngày được phép mở
         LocalDate unlockDate = startDate.plusDays(day - 1);
 
-        // Kiểm tra xem đã đến ngày đó chưa
         if (today.isBefore(unlockDate)) {
             return ResponseEntity.badRequest().body("Chưa đến ngày này đâu bé ơi! Đừng ăn gian nha 😘");
         }
 
         try {
-            // Logic tiêu đề tin nhắn khác biệt cho 8 ngày cuối
             String title = "🎖️ **BÁO CÁO TỪ HẬU PHƯƠNG!**";
             if (day >= 23) {
                 title = "🚨 **[QUÂN SỰ] TIN KHẨN CẤP!** 🚨";
@@ -237,18 +248,19 @@ public class MessageController {
             return ResponseEntity.status(500).body("Lỗi kết nối");
         }
     }
-    private final LocalDate XMAS_DATE = LocalDate.of(2025, 12, 25);
 
-    // Danh sách phần quà bên trong các hộp (Bạn tự sửa nhé)
+    // --- GIÁNG SINH (DISCORD) ---
+
+    private final LocalDate XMAS_DATE = LocalDate.of(2025, 12, 25);
     private final Map<Integer, String> GIFTS = new HashMap<>() {{
         put(1, "Voucher 150k ở Thành Đô");
         put(2, "Voucher 200k ở Winmart");
-        put(3, "Voucher 200k ở Ôsc sên");
+        put(3, "Voucher 200k ở Ốc sên");
     }};
 
     @GetMapping("/christmas")
     public String showChristmasPage() {
-        return "christmas"; // Trả về file christmas.html
+        return "christmas";
     }
 
     @PostMapping("/api/open-gift")
@@ -256,16 +268,14 @@ public class MessageController {
     public ResponseEntity<String> openGift(@RequestParam("boxId") int boxId) {
         LocalDate today = LocalDate.now();
 
-        // 1. Kiểm tra ngày
-        if (today.isBefore(XMAS_DATE)) {
-            return ResponseEntity.badRequest().body("Ho Ho Ho! Ông già Noel chưa đến! Đợi đến 25/12 nhé bé ngoan 🎅");
-        }
+        // Kiểm tra ngày mở quà (Mở comment dòng dưới để test luôn, hoặc để nguyên nếu muốn đúng ngày mới mở)
+        // if (today.isBefore(XMAS_DATE)) {
+        //    return ResponseEntity.badRequest().body("Ho Ho Ho! Ông già Noel chưa đến! Đợi đến 25/12 nhé bé ngoan 🎅");
+        // }
 
-        // 2. Lấy tên món quà
         String giftName = GIFTS.getOrDefault(boxId, "Một nụ hôn nồng cháy");
 
         try {
-            // 3. Gửi thông báo Discord
             String message = "🎄 **GIÁNG SINH AN LÀNH!** 🎄\n" +
                     "--------------------------------\n" +
                     "🎁 **Vợ đã chọn Hộp quà số:** " + boxId + "\n" +
@@ -274,8 +284,6 @@ public class MessageController {
                     "👉 *Anh hãy chuẩn bị quà để trao tay ngay nhé!*";
 
             discordService.sendNotification(message);
-
-            // Trả về tên món quà để hiện lên màn hình
             return ResponseEntity.ok(giftName);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi kết nối");

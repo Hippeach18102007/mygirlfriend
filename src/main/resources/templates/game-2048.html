@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>2048: Hành Trình Yêu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #faf8ef;
+      color: #776e65;
+      font-family: 'Nunito', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      touch-action: none; /* Chặn cuộn trang trên mobile để vuốt game */
+    }
+
+    h1 { margin: 0; font-size: 2.5em; color: #d81b60; }
+    .score-container {
+      background: #bbada0; padding: 5px 15px;
+      border-radius: 5px; color: white; font-weight: bold;
+      margin: 10px 0; text-align: center;
+    }
+
+    #game-board {
+      width: 320px; height: 320px;
+      background-color: #bbada0;
+      border-radius: 10px;
+      padding: 10px;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .cell {
+      background-color: #cdc1b4;
+      border-radius: 5px;
+      width: 100%; height: 100%;
+    }
+
+    .tile {
+      position: absolute;
+      width: 70px; height: 70px; /* Tính toán: (320 - 20 - 30)/4 ~ 67.5 -> làm tròn css */
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+      text-align: center;
+      transition: all 0.15s ease-in-out;
+      animation: pop 0.2s;
+      color: #f9f6f2;
+      line-height: 1.2;
+      padding: 2px;
+      box-sizing: border-box;
+    }
+
+    /* Màu sắc cho từng cấp độ (Thay đổi theo ý thích) */
+    .tile-2 { background: #eee4da; color: #776e65; font-size: 16px; } /* Người lạ */
+    .tile-4 { background: #ede0c8; color: #776e65; font-size: 16px; } /* Quen biết */
+    .tile-8 { background: #f2b179; font-size: 14px; } /* Bạn bè */
+    .tile-16 { background: #f59563; } /* Cảm nắng */
+    .tile-32 { background: #f67c5f; } /* Tỏ tình */
+    .tile-64 { background: #f65e3b; } /* Hẹn hò */
+    .tile-128 { background: #edcf72; font-size: 18px; color: #fff; box-shadow: 0 0 10px #edcf72; } /* Nắm tay */
+    .tile-256 { background: #edcc61; box-shadow: 0 0 15px #edcc61; } /* Hôn */
+    .tile-512 { background: #edc850; box-shadow: 0 0 20px #edc850; } /* Yêu say đắm */
+    .tile-1024 { background: #edc53f; font-size: 12px; } /* Cầu hôn */
+    .tile-2048 { background: #edc22e; font-size: 12px; box-shadow: 0 0 30px #d81b60; border: 2px solid white; } /* Về chung nhà */
+
+    @keyframes pop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+    .game-over {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(238, 228, 218, 0.73);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 100;
+      display: none;
+    }
+
+    button {
+      background: #8f7a66; color: white; border: none; padding: 10px 20px;
+      border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px;
+    }
+
+    .controls { margin-top: 20px; color: #776e65; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<h1>2048: Love Story ❤️</h1>
+<div class="score-container">Cấp độ: <span id="score-text">Người lạ</span></div>
+
+<div id="game-board">
+  <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+  <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+  <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+  <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+
+  <div class="game-over" id="game-over-screen">
+    <h2 id="game-msg">Hết đường đi rồi! 😢</h2>
+    <button onclick="resetGame()">Thử lại</button>
+    <button onclick="location.href='/'">Về trang chủ</button>
+  </div>
+</div>
+
+<div class="controls">
+  Sử dụng mũi tên hoặc vuốt màn hình để gộp tình yêu!
+</div>
+
+<script>
+  const board = document.getElementById('game-board');
+  const scoreText = document.getElementById('score-text');
+  const gameOverScreen = document.getElementById('game-over-screen');
+  const msgEl = document.getElementById('game-msg');
+
+  let grid = [];
+  let score = 0;
+  const size = 4;
+
+  // CÁC CẤP ĐỘ TÌNH YÊU (Tương ứng với 2, 4, 8, 16...)
+  const levels = {
+    2: "Người lạ",
+    4: "Quen biết",
+    8: "Bạn bè",
+    16: "Cảm nắng",
+    32: "Tỏ tình",
+    64: "Hẹn hò",
+    128: "Nắm tay",
+    256: "Hôn má",
+    512: "Yêu say đắm",
+    1024: "Cầu hôn",
+    2048: "Về chung nhà",
+    4096: "Bách niên giai lão"
+  };
+
+  function init() {
+    grid = Array(size).fill().map(() => Array(size).fill(0));
+    addRandomTile();
+    addRandomTile();
+    updateView();
+    gameOverScreen.style.display = 'none';
+  }
+
+  function addRandomTile() {
+    let emptyCells = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (grid[r][c] === 0) emptyCells.push({r, c});
+      }
+    }
+    if (emptyCells.length > 0) {
+      let {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+    }
+  }
+
+  function updateView() {
+    // Xóa các tile cũ (giữ lại 16 ô cell nền)
+    const tiles = document.querySelectorAll('.tile');
+    tiles.forEach(t => t.remove());
+
+    let maxVal = 0;
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        let val = grid[r][c];
+        if (val > 0) {
+          let tile = document.createElement('div');
+          tile.classList.add('tile', `tile-${val}`);
+          tile.textContent = levels[val] || val; // Hiển thị chữ thay vì số
+
+          // Tính toán vị trí absolute (dựa trên padding 10px và gap 10px)
+          // 10px padding + c * (70px width + 10px gap)
+          let left = 10 + c * 80;
+          let top = 10 + r * 80;
+
+          tile.style.left = left + 'px';
+          tile.style.top = top + 'px';
+
+          board.appendChild(tile);
+          if(val > maxVal) maxVal = val;
+        }
+      }
+    }
+    scoreText.textContent = levels[maxVal] || "Người lạ";
+
+    if (maxVal === 2048 && !localStorage.getItem('won2048')) {
+      msgEl.textContent = "Chúc mừng! Hai bạn đã về chung nhà! 🏠❤️";
+      gameOverScreen.style.display = 'flex';
+      localStorage.setItem('won2048', 'true');
+    }
+  }
+
+  // Logic di chuyển (Hơi phức tạp chút để xử lý gộp số)
+  function slide(row) {
+    let arr = row.filter(val => val); // Bỏ số 0
+    let missing = size - arr.length;
+    let zeros = Array(missing).fill(0);
+    return arr.concat(zeros);
+  }
+
+  function combine(row) {
+    for (let i = 0; i < size - 1; i++) {
+      if (row[i] !== 0 && row[i] === row[i + 1]) {
+        row[i] *= 2;
+        row[i + 1] = 0;
+      }
+    }
+    return row;
+  }
+
+  function move(dir) {
+    let oldGrid = JSON.stringify(grid);
+
+    if (dir === 'ArrowLeft' || dir === 'ArrowRight') {
+      for (let r = 0; r < size; r++) {
+        let row = grid[r];
+        if (dir === 'ArrowRight') row.reverse();
+        row = slide(combine(slide(row)));
+        if (dir === 'ArrowRight') row.reverse();
+        grid[r] = row;
+      }
+    } else { // Up or Down
+      for (let c = 0; c < size; c++) {
+        let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+        if (dir === 'ArrowDown') col.reverse();
+        col = slide(combine(slide(col)));
+        if (dir === 'ArrowDown') col.reverse();
+        for (let r = 0; r < size; r++) grid[r][c] = col[r];
+      }
+    }
+
+    if (oldGrid !== JSON.stringify(grid)) {
+      addRandomTile();
+      updateView();
+      checkGameOver();
+    }
+  }
+
+  function checkGameOver() {
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (grid[r][c] === 0) return;
+        if (c < size - 1 && grid[r][c] === grid[r][c + 1]) return;
+        if (r < size - 1 && grid[r][c] === grid[r + 1][c]) return;
+      }
+    }
+    msgEl.textContent = "Hết đường đi rồi! Tình yêu gặp khó khăn 😢";
+    gameOverScreen.style.display = 'flex';
+  }
+
+  // Controls
+  document.addEventListener('keydown', e => {
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+      e.preventDefault(); // Chặn cuộn trang
+      move(e.key);
+    }
+  });
+
+  // Vuốt trên mobile
+  let touchStartX = 0;
+  let touchStartY = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive: false});
+
+  document.addEventListener('touchend', e => {
+    if(!e.changedTouches.length) return;
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    let diffY = e.changedTouches[0].clientY - touchStartY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (Math.abs(diffX) > 30) move(diffX > 0 ? 'ArrowRight' : 'ArrowLeft');
+    } else {
+      if (Math.abs(diffY) > 30) move(diffY > 0 ? 'ArrowDown' : 'ArrowUp');
+    }
+  }, {passive: false});
+
+  function resetGame() {
+    init();
+  }
+
+  init();
+</script>
+</body>
+</html>

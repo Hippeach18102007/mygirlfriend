@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Giai Điệu Tình Yêu 🎹</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; padding: 0;
+      background: #222;
+      font-family: 'Quicksand', sans-serif;
+      overflow: hidden; /* Chặn cuộn */
+      touch-action: none;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100vw; height: 100vh;
+      background: #111;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 4 Làn đường */
+    .lane {
+      width: 25%; height: 100%;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+    .lane:last-child { border-right: none; }
+
+    /* Nốt nhạc */
+    .tile {
+      position: absolute;
+      width: 100%; height: 120px;
+      background: linear-gradient(to bottom, #ff69b4, #d81b60);
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 20, 147, 0.6);
+      z-index: 10;
+    }
+
+    .tile.clicked {
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      transition: opacity 0.2s, background 0.1s;
+    }
+
+    /* Thanh kẻ ngang dưới cùng (Vạch đích) */
+    .line {
+      position: absolute; bottom: 20%; left: 0; width: 100%; height: 2px;
+      background: rgba(255,255,255,0.3); pointer-events: none;
+    }
+
+    /* UI */
+    #ui-layer {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    #score {
+      position: absolute; top: 20px;
+      font-size: 3em; color: white;
+      text-shadow: 0 0 10px #ff69b4;
+      z-index: 100;
+    }
+
+    #start-screen, #game-over-screen {
+      background: rgba(0,0,0,0.85);
+      padding: 40px; border-radius: 20px;
+      text-align: center; color: white;
+      pointer-events: auto;
+      border: 2px solid #ff69b4;
+    }
+
+    button {
+      background: #d81b60; color: white; border: none;
+      padding: 15px 40px; font-size: 1.2em; border-radius: 50px;
+      margin-top: 20px; cursor: pointer; font-weight: bold;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Hiệu ứng bấm */
+    .effect {
+      position: absolute; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.2);
+      animation: flash 0.2s ease-out;
+    }
+    @keyframes flash { from {opacity: 1;} to {opacity: 0;} }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div class="lane" id="lane-0" onclick="handleLaneClick(0)"></div>
+  <div class="lane" id="lane-1" onclick="handleLaneClick(1)"></div>
+  <div class="lane" id="lane-2" onclick="handleLaneClick(2)"></div>
+  <div class="lane" id="lane-3" onclick="handleLaneClick(3)"></div>
+  <div class="line"></div>
+</div>
+
+<div id="score">0</div>
+
+<div id="ui-layer">
+  <div id="start-screen">
+    <h1 style="color: #ff69b4;">🎹 Magic Piano</h1>
+    <p>Bấm vào các nốt nhạc màu hồng.</p>
+    <p>Đừng để nốt trôi qua vạch kẻ!</p>
+    <button onclick="startGame()">Bắt đầu</button>
+  </div>
+
+  <div id="game-over-screen" class="hidden">
+    <h1>Sai điệu rồi! 😭</h1>
+    <p>Điểm: <span id="final-score">0</span></p>
+    <p>Anh vẫn yêu em dù em hát sai nhịp 😘</p>
+    <button onclick="startGame()">Chơi lại</button>
+    <button onclick="location.href='/'" style="background: #555;">Về trang chủ</button>
+  </div>
+</div>
+
+<script>
+  const lanes = [
+    document.getElementById('lane-0'),
+    document.getElementById('lane-1'),
+    document.getElementById('lane-2'),
+    document.getElementById('lane-3')
+  ];
+  const scoreEl = document.getElementById('score');
+  const startScreen = document.getElementById('start-screen');
+  const gameOverScreen = document.getElementById('game-over-screen');
+  const finalScoreEl = document.getElementById('final-score');
+
+  let isPlaying = false;
+  let score = 0;
+  let speed = 3; // Tốc độ rơi ban đầu
+  let gameLoop;
+  let spawnLoop;
+  let tiles = [];
+
+  // --- ÂM THANH (WEB AUDIO API) ---
+  // Tạo âm thanh Piano giả lập bằng sóng Sine
+  let audioCtx;
+
+  function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  // Các tần số nốt nhạc (C4, D4, E4, F4, G4, A4, B4, C5...)
+  const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+
+  function playSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    // Chọn nốt ngẫu nhiên trong gam C Major để nghe cho êm tai
+    const freq = notes[Math.floor(Math.random() * notes.length)];
+
+    osc.type = 'sine'; // Sóng hình sin (nghe êm giống sáo/piano điện)
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    // Hiệu ứng âm lượng (Fade out)
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+  }
+
+  // --- LOGIC GAME ---
+
+  function spawnTile() {
+    if (!isPlaying) return;
+
+    const laneIndex = Math.floor(Math.random() * 4);
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    tile.style.top = '-150px'; // Bắt đầu ở trên cùng màn hình
+    tile.dataset.clicked = "false";
+
+    // Thêm vào mảng quản lý
+    tiles.push({
+      element: tile,
+      y: -150,
+      lane: laneIndex
+    });
+
+    lanes[laneIndex].appendChild(tile);
+  }
+
+  function update() {
+    if (!isPlaying) return;
+
+    // Xóa các tile đã bị hủy khỏi DOM
+    tiles = tiles.filter(t => {
+      if (t.removeMe) {
+        t.element.remove();
+        return false;
+      }
+      return true;
+    });
+
+    for (let i = 0; i < tiles.length; i++) {
+      let t = tiles[i];
+
+      // Di chuyển xuống
+      t.y += speed;
+      t.element.style.top = t.y + 'px';
+
+      // Kiểm tra nếu trôi qua đáy màn hình mà chưa click -> Thua
+      if (t.y > window.innerHeight) {
+        if (t.element.dataset.clicked === "false") {
+          gameOver();
+          return;
+        } else {
+          t.removeMe = true; // Đã click và trôi hết màn hình thì xóa
+        }
+      }
+    }
+
+    gameLoop = requestAnimationFrame(update);
+  }
+
+  // Xử lý click vào làn
+  window.handleLaneClick = function(laneIndex) {
+    if (!isPlaying) return;
+
+    // Tìm tile thấp nhất trong làn này chưa được click
+    // Sắp xếp để lấy cái ở dưới cùng (y lớn nhất)
+    const tilesInLane = tiles.filter(t => t.lane === laneIndex && t.element.dataset.clicked === "false");
+    tilesInLane.sort((a, b) => b.y - a.y);
+
+    if (tilesInLane.length > 0) {
+      const target = tilesInLane[0];
+
+      // Kiểm tra xem đã vào vùng bấm được chưa (gần đáy màn hình 1 chút thì tốt, nhưng cho phép bấm sớm)
+      // Ở đây cho phép bấm bất cứ lúc nào miễn là tile đang hiện
+
+      target.element.classList.add('clicked');
+      target.element.dataset.clicked = "true";
+
+      // Hiệu ứng
+      playSound();
+      score++;
+      scoreEl.textContent = score;
+
+      // Tăng tốc độ
+      if (score % 10 === 0) speed += 0.5;
+
+      // Hiệu ứng flash cho làn
+      const flash = document.createElement('div');
+      flash.classList.add('effect');
+      lanes[laneIndex].appendChild(flash);
+      setTimeout(() => flash.remove(), 200);
+
+    } else {
+      // Bấm nhầm vào chỗ trống -> Thua
+      gameOver();
+    }
+  };
+
+  // Hỗ trợ cảm ứng đa điểm tốt hơn (Touchstart)
+  // Thay thế onclick mặc định để nhanh hơn trên mobile
+  lanes.forEach((lane, index) => {
+    lane.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // Chặn zoom
+      handleLaneClick(index);
+    }, {passive: false});
+  });
+
+  function startGame() {
+    initAudio();
+    // Reset
+    tiles.forEach(t => t.element.remove());
+    tiles = [];
+    score = 0;
+    speed = 4; // Tốc độ ban đầu
+    scoreEl.textContent = score;
+    isPlaying = true;
+
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+
+    update();
+
+    // Spawn tile liên tục
+    clearInterval(spawnLoop);
+    // Tốc độ sinh tile dựa vào tốc độ rơi (để khoảng cách đều nhau)
+    spawnLoop = setInterval(spawnTile, 600); // 0.6s ra 1 nốt
+  }
+
+  function gameOver() {
+    isPlaying = false;
+    cancelAnimationFrame(gameLoop);
+    clearInterval(spawnLoop);
+    finalScoreEl.textContent = score;
+    gameOverScreen.classList.remove('hidden');
+
+    // Âm thanh thua cuộc (tiếng thấp)
+    if(audioCtx) {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.frequency.value = 150;
+      osc.type = 'sawtooth';
+      g.gain.value = 0.5;
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 1);
+    }
+  }
+
+</script>
+</body>
+</html>

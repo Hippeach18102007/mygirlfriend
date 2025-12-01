@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rắn Săn Tình Yêu 🐍❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2c3e50;
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            touch-action: none;
+        }
+
+        h1 { margin: 10px 0; font-size: 1.5rem; color: #e74c3c; }
+
+        #game-area {
+            position: relative;
+            border: 4px solid #ecf0f1;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #34495e;
+        }
+
+        canvas { display: block; }
+
+        #score-board {
+            font-size: 1.2rem; margin-bottom: 10px;
+        }
+
+        /* Nút điều khiển cho điện thoại */
+        .controls {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            color: white;
+            font-size: 24px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .btn:active { background: rgba(255,255,255,0.3); }
+
+        /* Màn hình thông báo */
+        #overlay {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.9);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .play-btn {
+            background: #e74c3c; color: white; border: none;
+            padding: 10px 30px; font-size: 1.2rem;
+            border-radius: 30px; margin-top: 20px;
+            cursor: pointer; font-weight: bold;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Bố trí nút điều khiển */
+        .up { grid-column: 2; grid-row: 1; }
+        .left { grid-column: 1; grid-row: 2; }
+        .down { grid-column: 2; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+
+        @media (min-width: 768px) {
+            .controls { display: none; } /* Ẩn nút trên máy tính */
+        }
+    </style>
+</head>
+<body>
+
+<h1>🐍 Rắn Săn Tình Yêu ❤️</h1>
+<div id="score-board">Điểm: <span id="score">0</span></div>
+
+<div id="game-area">
+    <canvas id="gameCanvas" width="300" height="300"></canvas>
+
+    <div id="overlay">
+        <h2 id="msg-title">Sẵn sàng chưa?</h2>
+        <p id="msg-sub">Ăn trái tim để lớn lên nhé!</p>
+        <button class="play-btn" onclick="startGame()">Bắt đầu</button>
+        <button class="play-btn" onclick="location.href='/'" style="background: #7f8c8d; font-size: 1rem; margin-top: 10px;">Về trang chủ</button>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="btn up" onclick="changeDir('up')">⬆️</div>
+    <div class="btn left" onclick="changeDir('left')">⬅️</div>
+    <div class="btn down" onclick="changeDir('down')">⬇️</div>
+    <div class="btn right" onclick="changeDir('right')">➡️</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const overlay = document.getElementById('overlay');
+    const msgTitle = document.getElementById('msg-title');
+    const msgSub = document.getElementById('msg-sub');
+
+    // Cấu hình game
+    const gridSize = 15; // Kích thước mỗi ô (20x20 ô trên canvas 300x300)
+    const tileCount = canvas.width / gridSize;
+
+    let score = 0;
+    let velocity = { x: 0, y: 0 };
+    let trail = [];
+    let tail = 3; // Độ dài ban đầu
+
+    let player = { x: 10, y: 10 }; // Vị trí đầu rắn
+    let food = { x: 15, y: 15 };   // Vị trí trái tim
+
+    let gameInterval;
+    let isPlaying = false;
+
+    function startGame() {
+        // Reset
+        player = { x: 10, y: 10 };
+        trail = [];
+        tail = 3;
+        score = 0;
+        velocity = { x: 1, y: 0 }; // Mặc định chạy sang phải
+        scoreEl.innerText = score;
+
+        overlay.classList.add('hidden');
+        isPlaying = true;
+
+        clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, 1000/10); // 10 FPS (Tốc độ game)
+    }
+
+    function gameLoop() {
+        player.x += velocity.x;
+        player.y += velocity.y;
+
+        // Xử lý đi xuyên tường (hoặc chết nếu muốn khó hơn)
+        // Ở đây mình làm xuyên tường cho dễ chơi
+        if(player.x < 0) player.x = tileCount - 1;
+        if(player.x > tileCount - 1) player.x = 0;
+        if(player.y < 0) player.y = tileCount - 1;
+        if(player.y > tileCount - 1) player.y = 0;
+
+        // Vẽ nền
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Vẽ Rắn
+        ctx.fillStyle = '#2ecc71'; // Màu thân rắn
+        for(let i = 0; i < trail.length; i++) {
+            // Vẽ từng đốt rắn
+            ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize - 2, gridSize - 2);
+
+            // Kiểm tra tự cắn đuôi
+            if(trail[i].x === player.x && trail[i].y === player.y) {
+                gameOver();
+            }
+        }
+
+        // Đẩy vị trí mới vào mảng
+        trail.push({ x: player.x, y: player.y });
+        while(trail.length > tail) {
+            trail.shift(); // Xóa đuôi cũ
+        }
+
+        // Vẽ Trái tim (Food)
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = '12px Arial'; // Dùng font để vẽ emoji hoặc hình tròn
+        // Vẽ hình tròn đỏ thay vì emoji để tránh lỗi căn chỉnh
+        ctx.beginPath();
+        let centerX = food.x * gridSize + gridSize/2;
+        let centerY = food.y * gridSize + gridSize/2;
+        ctx.arc(centerX, centerY, gridSize/2 - 2, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Ăn mồi
+        if(player.x === food.x && player.y === food.y) {
+            tail++;
+            score++;
+            scoreEl.innerText = score;
+            // Random vị trí mới
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+        }
+    }
+
+    function changeDir(dir) {
+        if (!isPlaying) return;
+
+        switch(dir) {
+            case 'left':
+                if(velocity.x !== 1) velocity = { x: -1, y: 0 };
+                break;
+            case 'up':
+                if(velocity.y !== 1) velocity = { x: 0, y: -1 };
+                break;
+            case 'right':
+                if(velocity.x !== -1) velocity = { x: 1, y: 0 };
+                break;
+            case 'down':
+                if(velocity.y !== -1) velocity = { x: 0, y: 1 };
+                break;
+        }
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        clearInterval(gameInterval);
+
+        msgTitle.innerText = "Game Over! 😭";
+        msgSub.innerText = "Điểm của em: " + score;
+        overlay.classList.remove('hidden');
+    }
+
+    // Điều khiển bàn phím (PC)
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case 'ArrowLeft': changeDir('left'); break;
+            case 'ArrowUp': changeDir('up'); break;
+            case 'ArrowRight': changeDir('right'); break;
+            case 'ArrowDown': changeDir('down'); break;
+        }
+    });
+
+</script>
+</body>
+</html>

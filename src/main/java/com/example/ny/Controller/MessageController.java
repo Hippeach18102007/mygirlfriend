@@ -289,4 +289,20 @@ public class MessageController {
             return ResponseEntity.status(500).body("Lỗi kết nối");
         }
     }
+    @GetMapping("/game-kho")
+    public String showHardGamePage() {
+        return "game-kho"; // Trả về file game-kho.html
+    }
+    @GetMapping("/game-2048")
+    public String show2048Game() {
+        return "game-2048"; // Trả về file game-2048.html
+    }
+    @GetMapping("/game-piano")
+    public String showPianoGame() {
+        return "game-piano"; // Trả về file game-piano.html
+    }
+    @GetMapping("/game-snake")
+    public String showSnakeGame() {
+        return "game-snake"; // Trả về file game-snake.html
+    }
 }

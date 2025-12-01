@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thử Thách Tình Yêu: Flappy Heart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden; /* Chặn cuộn trang */
+            touch-action: none; /* Chặn zoom trên điện thoại */
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* Để click xuyên qua UI vào canvas */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #score-board {
+            position: absolute;
+            top: 20px;
+            font-size: 3rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        #start-screen, #game-over-screen, #win-screen {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 4px solid #ff4081;
+            pointer-events: auto; /* Cho phép bấm nút */
+        }
+
+        h1 { color: #c2185b; margin: 0 0 10px 0; }
+        p { color: #333; font-size: 1.1em; }
+
+        .btn {
+            background: #ff4081; color: white; border: none;
+            padding: 15px 30px; font-size: 1.2em; border-radius: 50px;
+            cursor: pointer; margin-top: 15px; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 64, 129, 0.4);
+            transition: transform 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .hidden { display: none !important; }
+
+        /* Hiệu ứng mây bay */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: moveCloud linear infinite;
+        }
+        @keyframes moveCloud { from { transform: translateX(110vw); } to { transform: translateX(-20vw); } }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="score-board">0</div>
+
+    <div id="ui-layer">
+        <div id="start-screen">
+            <h1>Flappy Heart ❤️</h1>
+            <p>Em hãy đưa trái tim vượt qua sóng gió nhé!</p>
+            <p><b>Mục tiêu:</b> 30 điểm (Tượng trưng 1 tháng)</p>
+            <p style="color: red; font-size: 0.9em;">(Cảnh báo: Game rất khó!)</p>
+            <button class="btn" onclick="startGame()">Bắt đầu chơi</button>
+        </div>
+
+        <div id="game-over-screen" class="hidden">
+            <h1>Ôi không! 💔</h1>
+            <p>Trái tim đã va vào khó khăn rồi.</p>
+            <p>Điểm của em: <span id="final-score">0</span></p>
+            <p id="mock-message" style="font-style: italic; color: #555;"></p>
+            <button class="btn" onclick="resetGame()">Thử lại đi bé</button>
+        </div>
+
+        <div id="win-screen" class="hidden">
+            <h1>🎉 CHÚC MỪNG VỢ! 🎉</h1>
+            <p>Em thật sự kiên trì luôn á! 30 ngày đã qua!</p>
+            <p>Đây là phần thưởng của em:</p>
+            <div style="background: #eee; padding: 10px; border-radius: 5px; margin: 10px 0; font-weight: bold; color: #d32f2f;">
+                VOUCHER: "BAT-CU-DIEU-GI-EM-MUON"
+            </div>
+            <p>Chụp màn hình lại gửi anh nhé! ❤️</p>
+            <button class="btn" onclick="location.href='/'">Về trang chủ</button>
+        </div>
+    </div>
+
+    <div class="cloud" style="width: 100px; height: 40px; top: 10%; animation-duration: 15s;"></div>
+    <div class="cloud" style="width: 150px; height: 60px; top: 30%; animation-duration: 25s;"></div>
+    <div class="cloud" style="width: 80px; height: 30px; top: 60%; animation-duration: 10s;"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const winScreen = document.getElementById('win-screen');
+    const scoreEl = document.getElementById('score-board');
+    const finalScoreEl = document.getElementById('final-score');
+    const mockMsgEl = document.getElementById('mock-message');
+
+    // Game Variables
+    let gameLoop;
+    let frames = 0;
+    let score = 0;
+    let isGameOver = false;
+    let isPlaying = false;
+    const WIN_SCORE = 30; // ĐIỂM CHIẾN THẮNG
+
+    // Responsive Canvas
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Đối tượng Trái Tim (Người chơi)
+    const heart = {
+        x: 50,
+        y: 150,
+        radius: 15,
+        velocity: 0,
+        gravity: 0.25, // Trọng lực (Càng cao càng rơi nhanh - Khó)
+        jump: 4.6,     // Lực nảy lên
+
+        draw: function() {
+            ctx.fillStyle = "#ff4081";
+            ctx.beginPath();
+            // Vẽ hình trái tim đơn giản bằng math
+            let x = this.x;
+            let y = this.y;
+            let r = this.radius;
+            ctx.moveTo(x, y + r / 4);
+            ctx.quadraticCurveTo(x, y, x + r / 2, y);
+            ctx.quadraticCurveTo(x + r, y, x + r, y + r / 2);
+            ctx.quadraticCurveTo(x + r, y + r, x, y + r * 1.5);
+            ctx.quadraticCurveTo(x - r, y + r, x - r, y + r / 2);
+            ctx.quadraticCurveTo(x - r, y, x - r / 2, y);
+            ctx.quadraticCurveTo(x, y, x, y + r / 4);
+            ctx.fill();
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        },
+
+        update: function() {
+            this.velocity += this.gravity;
+            this.y += this.velocity;
+
+            // Chạm đất
+            if (this.y + this.radius > canvas.height) {
+                this.y = canvas.height - this.radius;
+                gameOver();
+            }
+            // Chạm trần
+            if (this.y - this.radius < 0) {
+                this.y = this.radius;
+                this.velocity = 0;
+            }
+        },
+
+        flap: function() {
+            this.velocity = -this.jump;
+        }
+    };
+
+    // Quản lý Cột (Chướng ngại vật)
+    const pipes = {
+        position: [],
+        width: 60, // Chiều rộng cột
+        gap: 160,  // Khe hở (Càng nhỏ càng khó)
+        dx: 2.5,   // Tốc độ di chuyển (Càng cao càng khó)
+
+        draw: function() {
+            ctx.fillStyle = "#4caf50"; // Màu xanh lá
+            ctx.strokeStyle = "#2e7d32";
+            ctx.lineWidth = 3;
+
+            for(let i = 0; i < this.position.length; i++) {
+                let p = this.position[i];
+                let topY = p.y;
+                let bottomY = p.y + this.gap;
+
+                // Cột trên
+                ctx.fillRect(p.x, 0, this.width, topY);
+                ctx.strokeRect(p.x, 0, this.width, topY);
+
+                // Cột dưới
+                ctx.fillRect(p.x, bottomY, this.width, canvas.height - bottomY);
+                ctx.strokeRect(p.x, bottomY, this.width, canvas.height - bottomY);
+            }
+        },
+
+        update: function() {
+            // Thêm cột mới mỗi 120 frames (khoảng 2 giây)
+            if(frames % 120 === 0) {
+                // Random vị trí khe hở
+                let min = canvas.height * 0.1;
+                let max = canvas.height * 0.7; // Chừa chỗ cho khe hở
+                let y = Math.floor(Math.random() * (max - min + 1) + min);
+
+                this.position.push({ x: canvas.width, y: y, passed: false });
+            }
+
+            for(let i = 0; i < this.position.length; i++) {
+                let p = this.position[i];
+                p.x -= this.dx; // Di chuyển sang trái
+
+                // Xử lý va chạm
+                // Logic va chạm hình chữ nhật vs hình tròn (đơn giản hóa thành hộp va chạm)
+                let heartLeft = heart.x - heart.radius + 5; // +5 để hitbox nhỏ hơn chút cho dễ thở
+                let heartRight = heart.x + heart.radius - 5;
+                let heartTop = heart.y; // Đỉnh tim
+                let heartBottom = heart.y + heart.radius * 1.5; // Đuôi tim
+
+                // Check va chạm cột trên hoặc cột dưới
+                if (heartRight > p.x && heartLeft < p.x + this.width) {
+                    if (heartTop < p.y || heartBottom > p.y + this.gap) {
+                        gameOver();
+                    }
+                }
+
+                // Cộng điểm
+                if(p.x + this.width < heart.x && !p.passed) {
+                    score++;
+                    scoreEl.innerText = score;
+                    p.passed = true;
+
+                    // Âm thanh ăn điểm (tuỳ chọn)
+                    // new Audio('point.mp3').play().catch(()=>{});
+
+                    // TĂNG ĐỘ KHÓ: Cứ mỗi 5 điểm, tốc độ tăng lên chút xíu
+                    if(score % 5 === 0) this.dx += 0.2;
+
+                    // WIN GAME
+                    if(score >= WIN_SCORE) {
+                        gameWin();
+                    }
+                }
+
+                // Xóa cột đã đi qua
+                if(p.x + this.width < 0) {
+                    this.position.shift();
+                }
+            }
+        },
+
+        reset: function() {
+            this.position = [];
+            this.dx = 2.5; // Reset tốc độ
+        }
+    };
+
+    // Vòng lặp Game
+    function loop() {
+        if (!isPlaying) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        pipes.update();
+        pipes.draw();
+
+        heart.update();
+        heart.draw();
+
+        frames++;
+
+        if (!isGameOver) {
+            gameLoop = requestAnimationFrame(loop);
+        }
+    }
+
+    // Controls
+    function startGame() {
+        startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+        winScreen.classList.add('hidden');
+        scoreEl.classList.remove('hidden');
+
+        // Reset state
+        heart.y = 150;
+        heart.velocity = 0;
+        pipes.reset();
+        score = 0;
+        scoreEl.innerText = score;
+        frames = 0;
+        isGameOver = false;
+        isPlaying = true;
+
+        loop();
+    }
+
+    function resetGame() {
+        startGame();
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        isPlaying = false;
+        cancelAnimationFrame(gameLoop);
+
+        // Các câu cà khịa khi thua
+        const messages = [
+            "Chưa gì đã bỏ cuộc rồi sao? 😜",
+            "Cố lên em yêu, mới có xíu mà!",
+            "Anh biết là khó, nhưng yêu anh còn khó hơn cơ!",
+            "Lại nào, tập trung vào!",
+            "Thua rồi lêu lêu 😝"
+        ];
+        mockMsgEl.innerText = messages[Math.floor(Math.random() * messages.length)];
+
+        finalScoreEl.innerText = score;
+        scoreEl.classList.add('hidden');
+        gameOverScreen.classList.remove('hidden');
+    }
+
+    function gameWin() {
+        isGameOver = true;
+        isPlaying = false;
+        cancelAnimationFrame(gameLoop);
+
+        winScreen.classList.remove('hidden');
+
+        // Gửi thông báo chiến thắng về Discord (Ẩn danh)
+        // Bạn có thể thêm fetch API ở đây nếu muốn hệ thống tự báo về
+    }
+
+    // Input Handling (Mouse & Touch)
+    window.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' || e.code === 'ArrowUp') {
+            if(isPlaying) heart.flap();
+        }
+    });
+
+    // Chạm màn hình hoặc click chuột đều bay
+    document.getElementById('game-container').addEventListener('mousedown', function() {
+        if(isPlaying) heart.flap();
+    });
+
+    document.getElementById('game-container').addEventListener('touchstart', function(e) {
+        e.preventDefault(); // Chặn zoom/scroll
+        if(isPlaying) heart.flap();
+    }, {passive: false});
+
+</script>
+</body>
+</html>

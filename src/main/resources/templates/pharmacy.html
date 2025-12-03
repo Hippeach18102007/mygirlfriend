@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiệm Thuốc Tình Yêu 💊</title>
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Varela Round', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #0097a7;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.2rem;
+    }
+
+    .subtitle {
+      color: #555;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* Lưới các triệu chứng */
+    .symptom-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    /* Thẻ thuốc */
+    .pill-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pill-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,151,167,0.2);
+      border-color: #4dd0e1;
+    }
+
+    .icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+    .symptom-name { font-weight: bold; color: #333; font-size: 1.1rem; }
+
+    /* Modal Đơn Thuốc */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .prescription-paper {
+      background: #fff;
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      border-radius: 5px; /* Giấy vuông vức hơn xíu */
+      position: relative;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      animation: slideUp 0.4s ease-out;
+      background-image: repeating-linear-gradient(#fff 0px, #fff 24px, #00b0ff 25px); /* Dòng kẻ giấy */
+      line-height: 25px;
+    }
+
+    /* Hiệu ứng ghim giấy */
+    .prescription-paper::before {
+      content: '';
+      position: absolute;
+      top: -15px; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 30px;
+      background: rgba(255,0,0,0.3); /* Băng dính */
+      transform: translateX(-50%) rotate(-2deg);
+    }
+
+    @keyframes slideUp {
+      from {transform: translateY(100px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
+
+    .rx-title {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #d32f2f;
+      font-weight: bold;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+      background: white; /* Che dòng kẻ nền */
+      display: inline-block;
+      width: 100%;
+    }
+
+    .cure-content {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+    }
+
+    .cure-media {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+      border: 5px solid white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .btn-take {
+      background: #0097a7;
+      color: white;
+      border: none;
+      padding: 10px 30px;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto;
+      font-weight: bold;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px; right: 15px;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #aaa;
+      background: white;
+      line-height: 20px;
+    }
+
+  </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: #0097a7; font-weight: bold;">⬅ Trang chủ</a>
+
+<h1>💊 Tiệm Thuốc Tình Yêu</h1>
+<div class="subtitle">Em đang cảm thấy thế nào? Hãy chọn triệu chứng để anh kê đơn nhé!</div>
+
+<div class="symptom-grid">
+  <div class="pill-card" onclick="openPrescription('sad')">
+    <span class="icon">😢</span>
+    <div class="symptom-name">Đang Buồn</div>
+  </div>
+
+  <div class="pill-card" onclick="openPrescription('angry')">
+    <span class="icon">😡</span>
+    <div class="symptom-name">Đang Cáu (Dỗi)</div>
+  </div>
+
+  <div class="pill-card" onclick="openPrescription('miss')">
+    <span class="icon">🥺</span>
+    <div class="symptom-name">Nhớ Anh</div>
+  </div>
+
+  <div class="pill-card" onclick="openPrescription('tired')">
+    <span class="icon">🥱</span>
+    <div class="symptom-name">Mệt Mỏi</div>
+  </div>
+
+  <div class="pill-card" onclick="openPrescription('hungry')">
+    <span class="icon">🤤</span>
+    <div class="symptom-name">Đói Bụng</div>
+  </div>
+
+  <div class="pill-card" onclick="openPrescription('bored')">
+    <span class="icon">🙄</span>
+    <div class="symptom-name">Chán Quá</div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="prescription-paper">
+    <span class="close-btn" onclick="closeModal()">&times;</span>
+    <div class="rx-title">🩺 ĐƠN THUỐC (Rx)</div>
+
+    <div id="cure-body" class="cure-content">
+    </div>
+
+    <button class="btn-take" onclick="takeMedicine()">Uống Thuốc Ngay</button>
+  </div>
+</div>
+
+<script>
+  // DỮ LIỆU ĐƠN THUỐC (Bạn sửa nội dung ở đây nhé)
+  const prescriptions = {
+    'sad': {
+      text: "Bác sĩ chẩn đoán: Thiếu Vitamin 'Cười'.\nChỉ định: Xem video này ngay lập tức!",
+      // Link GIF hài hước hoặc video TikTok bạn thấy buồn cười
+      media: "https://media.giphy.com/media/5wWf7H89PisM6An8UAU/giphy.gif"
+    },
+    'angry': {
+      text: "Bác sĩ chẩn đoán: Nóng trong người.\nChỉ định: Hạ hỏa bằng cách nhìn khuôn mặt đẹp trai (và ngây thơ) này.",
+      // Ảnh dìm hàng của bạn để chọc cô ấy cười
+      media: "https://media.giphy.com/media/l1J9PVAZTGx0BPrO0/giphy.gif"
+    },
+    'miss': {
+      text: "Bác sĩ chẩn đoán: Nghiện người yêu giai đoạn cuối.\nChỉ định: Nghe giọng anh 10 phút.",
+      media: "https://media.giphy.com/media/l4pTdcifPZLpDjL1e/giphy.gif"
+      // Bạn có thể chèn thẻ <audio> vào đây nếu muốn
+    },
+    'tired': {
+      text: "Bác sĩ chẩn đoán: Pin yếu.\nChỉ định: Tắt điện thoại, nhắm mắt lại. Anh cho phép em lười biếng hôm nay!",
+      media: "https://media.giphy.com/media/mguPrVJAnEHIY/giphy.gif"
+    },
+    'hungry': {
+      text: "Bác sĩ chẩn đoán: Tụt đường huyết.\nChỉ định: Một cốc trà sữa Full Topping (Anh bao).",
+      media: "https://media.giphy.com/media/LpdlqTkgO2Lwwixwv7/giphy.gif"
+    },
+    'bored': {
+      text: "Bác sĩ chẩn đoán: Rảnh rỗi sinh nông nổi.\nChỉ định: Vào chơi game 'Vòng Quay' hoặc 'Trắc Nghiệm' ở trang chủ đi!",
+      media: "https://media.giphy.com/media/tXL4FHPSnVJ0A/giphy.gif"
+    }
+  };
+
+  const modal = document.getElementById('modal');
+  const cureBody = document.getElementById('cure-body');
+  let currentSymptomName = "";
+
+  function openPrescription(symptom) {
+    const data = prescriptions[symptom];
+
+    // Lấy tên tiếng Việt để gửi báo cáo
+    const element = document.querySelector(`.pill-card[onclick="openPrescription('${symptom}')"] .symptom-name`);
+    currentSymptomName = element.innerText;
+
+    let html = `<strong>${data.text}</strong><br>`;
+    if(data.media) {
+      html += `<img src="${data.media}" class="cure-media">`;
+    }
+
+    cureBody.innerHTML = html;
+    modal.style.display = 'flex';
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  function takeMedicine() {
+    // Gửi thông báo Discord
+    fetch(`/api/ke-don?symptom=${encodeURIComponent(currentSymptomName)}`, {
+      method: 'POST'
+    })
+            .then(res => {
+              alert("Đã uống thuốc! Bác sĩ Đức sẽ kiểm tra lại tình trạng của em sớm.");
+              closeModal();
+            })
+            .catch(err => alert("Lỗi mạng!"));
+  }
+
+  // Đóng modal khi click ra ngoài
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      closeModal();
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vườn Cây Chờ Đợi 🌱</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #87CEEB; /* Màu trời */
+      background-image: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+      font-family: 'Comfortaa', cursive;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end; /* Căn xuống đáy để tạo mặt đất */
+      overflow: hidden;
+    }
+
+    /* Mặt trời */
+    .sun {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      width: 80px;
+      height: 80px;
+      background: #FFD700;
+      border-radius: 50%;
+      box-shadow: 0 0 40px #FFD700;
+      animation: spin 20s linear infinite;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Mây bay */
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50px;
+      animation: moveCloud 20s linear infinite;
+    }
+    .c1 { width: 120px; height: 60px; top: 100px; left: -120px; animation-duration: 25s; }
+    .c2 { width: 100px; height: 50px; top: 50px; left: -100px; animation-duration: 18s; animation-delay: 5s; }
+
+    @keyframes moveCloud {
+      from { left: -150px; }
+      to { left: 110%; }
+    }
+
+    /* Mặt đất */
+    .ground {
+      width: 100%;
+      height: 150px;
+      background: #8D6E63; /* Màu đất */
+      border-top: 20px solid #4CAF50; /* Cỏ */
+      display: flex;
+      justify-content: center;
+      align-items: flex-end; /* Cây mọc từ cỏ */
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Cái cây */
+    .tree-container {
+      position: relative;
+      bottom: 20px; /* Đặt lên trên lớp cỏ */
+      text-align: center;
+      transition: transform 0.5s;
+    }
+
+    .tree-img {
+      width: 150px;
+      height: auto;
+      filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.3));
+    }
+
+    /* Bình tưới nước */
+    .watering-can {
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 80px;
+      opacity: 0;
+      transition: all 1s;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* Hiệu ứng tưới */
+    .watering .watering-can {
+      opacity: 1;
+      top: 0;
+      right: -50px;
+      transform: rotate(-45deg);
+    }
+
+    /* Giọt nước */
+    .water-drop {
+      position: absolute;
+      background: #2196F3;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      opacity: 0;
+    }
+
+    /* Bảng điều khiển */
+    .controls {
+      position: absolute;
+      top: 20%;
+      text-align: center;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1 { margin: 0; color: #4CAF50; font-size: 1.5rem; }
+
+    .progress-text {
+      color: #555;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .btn-water {
+      background: linear-gradient(45deg, #2196F3, #03A9F4);
+      border: none;
+      padding: 12px 30px;
+      color: white;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-family: 'Comfortaa', cursive;
+      box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .btn-water:active { transform: scale(0.95); }
+    .btn-water:disabled { background: #B0BEC5; cursor: not-allowed; box-shadow: none; }
+
+    /* Tin nhắn động viên */
+    .message-bubble {
+      background: white;
+      padding: 10px 20px;
+      border-radius: 15px;
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .message-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      border: 10px solid transparent;
+      border-top-color: white;
+      margin-left: -10px;
+    }
+    .show-msg { opacity: 1; }
+
+  </style>
+</head>
+<body>
+
+<div class="sun"></div>
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+
+<div class="controls">
+  <h1>Vườn Cây Của Em 🌱</h1>
+  <div class="progress-text" id="status">Cấp độ: Hạt Giống</div>
+  <button class="btn-water" id="waterBtn" onclick="waterPlant()">💧 Tưới Nước</button>
+  <p style="font-size: 12px; color: #888; margin-top: 5px;">(Mỗi ngày tưới 1 lần để cây lớn nhé!)</p>
+</div>
+
+<div class="ground">
+  <div class="tree-container" id="treeContainer">
+    <div class="message-bubble" id="msgBubble">Cảm ơn cô chủ! 💚</div>
+
+    <img src="https://cdn-icons-png.flaticon.com/512/3209/3209964.png" class="watering-can">
+
+    <img id="treeImg" src="" class="tree-img" alt="Tree">
+  </div>
+</div>
+
+<script>
+  // --- DỮ LIỆU CÂY THEO CẤP ĐỘ ---
+  // Sử dụng link ảnh PNG không nền (transparent)
+  const stages = [
+    { level: 0, name: "Hạt Giống Ngủ Say", img: "https://cdn-icons-png.flaticon.com/512/10603/10603417.png" }, // Hạt
+    { level: 1, name: "Mầm Non Mới Nhú", img: "https://cdn-icons-png.flaticon.com/512/1584/1584342.png" }, // Mầm
+    { level: 2, name: "Cây Con Xanh Tốt", img: "https://cdn-icons-png.flaticon.com/512/628/628283.png" }, // Cây nhỏ
+    { level: 3, name: "Cây Trưởng Thành", img: "https://cdn-icons-png.flaticon.com/512/2823/2823668.png" }, // Cây lớn
+    { level: 4, name: "Cây Nở Hoa Tình Yêu", img: "https://cdn-icons-png.flaticon.com/512/2921/2921829.png" }  // Cây có hoa/tim
+  ];
+
+  const btn = document.getElementById('waterBtn');
+  const statusEl = document.getElementById('status');
+  const treeImg = document.getElementById('treeImg');
+  const treeContainer = document.getElementById('treeContainer');
+  const msgBubble = document.getElementById('msgBubble');
+
+  // Lấy dữ liệu từ localStorage
+  let currentExp = parseInt(localStorage.getItem('plant_exp')) || 0;
+  let lastWaterDate = localStorage.getItem('last_water_date');
+
+  // Cập nhật giao diện ban đầu
+  updateTreeUI();
+  checkDailyLimit();
+
+  function updateTreeUI() {
+    // Logic tính cấp độ: Cứ 3 lần tưới là lên 1 cấp
+    // Bạn có thể chỉnh số này lớn hơn để cây lâu lớn hơn (ví dụ 7 ngày = 1 cấp)
+    let level = Math.floor(currentExp / 3);
+
+    if (level >= stages.length) level = stages.length - 1; // Max level
+
+    const stage = stages[level];
+    statusEl.innerText = `Cấp độ ${level}: ${stage.name} (EXP: ${currentExp})`;
+    treeImg.src = stage.img;
+
+    // Hiệu ứng lớn lên nếu vừa lên cấp (đơn giản hóa)
+  }
+
+  function checkDailyLimit() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (lastWaterDate === today) {
+      btn.innerText = "Hôm nay đã tưới rồi ✅";
+      btn.disabled = true;
+      btn.style.background = "#81C784";
+    }
+  }
+
+  function waterPlant() {
+    // 1. Hiệu ứng tưới nước
+    treeContainer.classList.add('watering');
+    btn.disabled = true;
+    btn.innerText = "Đang tưới...";
+
+    setTimeout(() => {
+      // 2. Logic game
+      const today = new Date().toISOString().slice(0, 10);
+
+      currentExp++;
+      localStorage.setItem('plant_exp', currentExp);
+      localStorage.setItem('last_water_date', today);
+
+      // 3. Cập nhật UI
+      updateTreeUI();
+
+      // 4. Hiện lời thoại
+      msgBubble.classList.add('show-msg');
+      setTimeout(() => msgBubble.classList.remove('show-msg'), 3000);
+
+      // 5. Kết thúc hiệu ứng
+      treeContainer.classList.remove('watering');
+      btn.innerText = "Hôm nay đã tưới rồi ✅";
+      btn.style.background = "#81C784";
+
+      // 6. Gửi báo cáo Discord
+      fetch(`/api/water-plant?dayCount=${currentExp}`, { method: 'POST' });
+
+    }, 2000); // Đợi 2 giây hiệu ứng tưới
+  }
+</script>
+</body>
+</html>

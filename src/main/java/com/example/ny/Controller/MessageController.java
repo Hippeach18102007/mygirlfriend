@@ -20,7 +20,7 @@ public class MessageController {
     // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Em bé đi đường cẩn thận nhaaaa. Anh yêu em. Ký tên: Ngôi nhà nhỏ của emm.\uD83E\uDEF6\n";
+    private final String loiNhan = "Hôm nay anh có nói gì sai thì cho anh xin lỗi nhé. Anh yêu em lắm :( \uD83E\uDEF6\n";
 
     // Email nhận thông báo (cho phần vòng quay may mắn)
     private final String myEmail = "ducdath04243@fpt.edu.vn";
@@ -304,5 +304,52 @@ public class MessageController {
     @GetMapping("/game-snake")
     public String showSnakeGame() {
         return "game-snake"; // Trả về file game-snake.html
+    }
+    @GetMapping("/garden")
+    public String showGardenPage() {
+        return "garden"; // Trả về file garden.html
+    }
+
+    @PostMapping("/api/water-plant")
+    @ResponseBody
+    public ResponseEntity<String> waterPlant(@RequestParam("dayCount") int dayCount) {
+        try {
+            // Gửi thông báo Discord
+            String message = "🌱 **NHẬT KÝ VƯỜN CÂY** 🌱\n" +
+                    "--------------------------------\n" +
+                    "💧 Vợ vừa tưới nước cho cây.\n" +
+                    "📈 Cấp độ hiện tại: Ngày thứ " + dayCount + "\n" +
+                    "💬 *Cây đang lớn nhanh như tình yêu của chúng mình vậy!*\n" +
+                    "--------------------------------";
+
+            discordService.sendNotification(message);
+            return ResponseEntity.ok("Đã tưới nước thành công! Anh đã nhận được tin.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi kết nối");
+        }
+    }
+    @GetMapping("/pharmacy")
+    public String showPharmacyPage() {
+        return "pharmacy"; // Trả về file pharmacy.html
+    }
+
+    @PostMapping("/api/ke-don")
+    @ResponseBody
+    public ResponseEntity<String> prescribeMedicine(@RequestParam("symptom") String symptom) {
+        try {
+            // Nội dung thông báo gửi về Discord
+            String message = "🚑 **BÁO CÁO BỆNH ÁN KHẨN CẤP!** 🚑\n" +
+                    "--------------------------------\n" +
+                    "😷 **Bệnh nhân:** Vợ Yêu\n" +
+                    "🤒 **Triệu chứng:** " + symptom + "\n" +
+                    "💊 **Trạng thái:** Đã uống thuốc trên web.\n" +
+                    "--------------------------------\n" +
+                    "👉 *Bác sĩ Đức (Bạn) hãy chú ý theo dõi bệnh nhân nhé!*";
+
+            discordService.sendNotification(message);
+            return ResponseEntity.ok("Đã kê đơn!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống");
+        }
     }
 }

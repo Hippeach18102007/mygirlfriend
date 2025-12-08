@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bếp Cơm Tình Yêu 🍱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffeaa7;
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #d35400;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .subtitle { color: #e17055; margin-bottom: 20px; text-align: center; }
+
+        /* Hộp cơm */
+        .bento-box {
+            width: 300px;
+            height: 300px;
+            background: #d63031;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 10px 0 #b71515;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .compartment {
+            background: #fff;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            cursor: pointer;
+            border: 2px dashed #ccc;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .compartment.filled {
+            border: 2px solid #fab1a0;
+            background: #fff5f5;
+        }
+
+        .compartment:hover { background: #ffeaa7; }
+
+        /* Menu chọn món */
+        .menu-section {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            font-weight: bold;
+            color: #636e72;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .food-options {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .food-item {
+            font-size: 2rem;
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .food-item:hover { transform: scale(1.1); background: #fab1a0; }
+        .food-item.selected { background: #ff7675; color: white; transform: scale(1.1); }
+
+        /* Input lời nhắn */
+        .note-input {
+            margin-top: 20px;
+            width: 90%;
+            max-width: 300px;
+            padding: 10px;
+            border: 2px solid #fab1a0;
+            border-radius: 10px;
+            font-family: inherit;
+        }
+
+        /* Nút nấu ăn */
+        .btn-cook {
+            margin-top: 20px;
+            margin-bottom: 40px;
+            background: #e17055;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #bf462a;
+            transition: all 0.2s;
+        }
+
+        .btn-cook:active { transform: translateY(4px); box-shadow: 0 1px 0 #bf462a; }
+
+        /* Màn hình nấu ăn (Overlay) */
+        .cooking-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+        }
+
+        .pan {
+            font-size: 5rem;
+            animation: toss 0.5s infinite alternate;
+        }
+
+        @keyframes toss {
+            from { transform: rotate(0deg) translateY(0); }
+            to { transform: rotate(-20deg) translateY(-20px); }
+        }
+
+    </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: #d35400; font-weight: bold;">⬅ Trang chủ</a>
+
+<h1>Bếp Cơm Tình Yêu 🍱</h1>
+<div class="subtitle">Anh đi quân sự ăn uống kham khổ, để em nấu cho anh nhé!</div>
+
+<div class="bento-box" id="bento">
+    <div class="compartment" id="slot-1" onclick="clearSlot(1)"></div>
+    <div class="compartment" id="slot-2" onclick="clearSlot(2)"></div>
+    <div class="compartment" id="slot-3" onclick="clearSlot(3)"></div>
+    <div class="compartment" id="slot-4" onclick="clearSlot(4)"></div>
+</div>
+<div class="menu-section">
+
+    <div class="category-title">🍚 Tinh Bột & Món Chính (Chọn 1)</div>
+    <div class="food-options" id="carbs">
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍚')">🍚</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍙')">🍙</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍛')">🍛</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍜')">🍜</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍝')">🍝</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🥡')">🥡</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍞')">🍞</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🥐')">🥐</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🥯')">🥯</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🥞')">🥞</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍟')">🍟</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍕')">🍕</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🍔')">🍔</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🌭')">🌭</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🥪')">🥪</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🌮')">🌮</div>
+        <div class="food-item" onclick="selectFood(this, 'carbs', '🥟')">🥟</div>
+    </div>
+
+    <div class="category-title" style="margin-top: 15px;">🍗 Team Thịt Thà & Hải Sản (Chọn 1)</div>
+    <div class="food-options" id="protein">
+        <div class="food-item" onclick="selectFood(this, 'protein', '🍗')">🍗</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🍖')">🍖</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🥩')">🥩</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🥓')">🥓</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🌭')">🌭</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🥚')">🥚</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🍳')">🍳</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🍤')">🍤</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🐟')">🐟</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🍣')">🍣</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🦀')">🦀</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🦞')">🦞</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🦑')">🦑</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🐙')">🐙</div>
+        <div class="food-item" onclick="selectFood(this, 'protein', '🥫')">🥫</div>
+    </div>
+
+    <div class="category-title" style="margin-top: 15px;">🥦 Rau Củ & Canh (Chọn 1)</div>
+    <div class="food-options" id="veggie">
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥦')">🥦</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥬')">🥬</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥒')">🥒</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥕')">🥕</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🌽')">🌽</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🍅')">🍅</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🍆')">🍆</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥔')">🥔</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🍠')">🍠</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥑')">🥑</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🍄')">🍄</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🌶️')">🌶️</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥗')">🥗</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥘')">🥘</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🍲')">🍲</div>
+        <div class="food-item" onclick="selectFood(this, 'veggie', '🥣')">🥣</div>
+    </div>
+
+    <div class="category-title" style="margin-top: 15px;">🍰 Tráng Miệng & Đồ Uống (Chọn 1)</div>
+    <div class="food-options" id="dessert">
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍓')">🍓</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍎')">🍎</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍒')">🍒</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍉')">🍉</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍌')">🍌</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍇')">🍇</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍰')">🍰</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🎂')">🎂</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🧁')">🧁</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍦')">🍦</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍧')">🍧</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍩')">🍩</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍪')">🍪</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍫')">🍫</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍬')">🍬</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍭')">🍭</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🧋')">🧋</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🥤')">🥤</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '☕')">☕</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍺')">🍺</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍷')">🍷</div>
+        <div class="food-item" onclick="selectFood(this, 'dessert', '🍼')">🍼</div>
+    </div>
+</div>
+
+<input type="text" id="message" class="note-input" placeholder="Nhắn nhủ gì cho anh không? (VD: Ăn ngon nhé!)">
+
+<button class="btn-cook" onclick="cook()">🔥 NẤU & GỬI NGAY</button>
+
+<div class="cooking-overlay" id="cooking">
+    <div class="pan">🍳</div>
+    <h2>Đang nấu nướng...</h2>
+    <p>Vợ đang nêm nếm gia vị tình yêu ❤️</p>
+</div>
+
+<script>
+    // Lưu trữ các món đã chọn
+    const menu = {
+        carbs: '',
+        protein: '',
+        veggie: '',
+        dessert: ''
+    };
+
+    function selectFood(el, category, icon) {
+        // Xóa class selected cũ trong cùng hàng
+        const siblings = el.parentElement.children;
+        for (let i = 0; i < siblings.length; i++) {
+            siblings[i].classList.remove('selected');
+        }
+
+        // Highlight cái mới
+        el.classList.add('selected');
+
+        // Lưu vào data
+        menu[category] = icon;
+
+        // Cập nhật lên hộp cơm (Logic đơn giản: Gán vào 4 ô cố định)
+        updateBento();
+    }
+
+    function updateBento() {
+        // Cập nhật lần lượt 4 ô
+        document.getElementById('slot-1').innerText = menu.carbs;
+        document.getElementById('slot-2').innerText = menu.protein;
+        document.getElementById('slot-3').innerText = menu.veggie;
+        document.getElementById('slot-4').innerText = menu.dessert;
+
+        // Thêm class filled để đẹp hơn
+        if(menu.carbs) document.getElementById('slot-1').classList.add('filled');
+        if(menu.protein) document.getElementById('slot-2').classList.add('filled');
+        if(menu.veggie) document.getElementById('slot-3').classList.add('filled');
+        if(menu.dessert) document.getElementById('slot-4').classList.add('filled');
+    }
+    function clearSlot(slotId) {
+        // Xóa món ăn khỏi menu dựa trên vị trí slot
+        if (slotId === 1) menu.carbs = '';
+        if (slotId === 2) menu.protein = '';
+        if (slotId === 3) menu.veggie = '';
+        if (slotId === 4) menu.dessert = '';
+
+        // Xóa class visual
+        document.getElementById('slot-' + slotId).classList.remove('filled');
+        document.getElementById('slot-' + slotId).innerText = '';
+    }
+
+    function cook() {
+        // 1. Kiểm tra xem đã chọn đủ món chưa
+        if (!menu.carbs || !menu.protein || !menu.veggie || !menu.dessert) {
+            alert("Ơ kìa! Hộp cơm còn trống, anh ăn sao no được? Chọn đủ 4 món đi em! 🥺");
+            return;
+        }
+
+        const msg = document.getElementById('message').value || "Ăn ngon miệng nhé chồng yêu!";
+
+        // 2. Hiện màn hình đang nấu
+        const overlay = document.getElementById('cooking');
+        overlay.style.display = 'flex';
+
+        // 3. Giả lập thời gian nấu 2 giây rồi gửi
+        setTimeout(() => {
+            // Tạo chuỗi thực đơn để gửi
+            const dishList = `${menu.carbs} + ${menu.protein} + ${menu.veggie} + ${menu.dessert}`;
+
+            // Gọi API gửi về Server (Discord)
+            fetch(`/api/cook-bento?dishList=${encodeURIComponent(dishList)}&message=${encodeURIComponent(msg)}`, {
+                method: 'POST'
+            })
+                .then(res => {
+                    overlay.style.display = 'none'; // Tắt màn hình nấu
+                    if (res.ok) {
+                        alert("🍱 Xong rồi! Cơm nóng hổi vừa thổi vừa ăn đã được gửi đi! ❤️");
+                        location.reload(); // Tải lại trang để nấu hộp mới
+                    } else {
+                        alert("Lỗi mạng rồi :( Nhưng tấm lòng của em anh đã nhận được!");
+                    }
+                })
+                .catch(err => {
+                    overlay.style.display = 'none';
+                    alert("Có lỗi xảy ra, thử lại sau nhé!");
+                });
+
+        }, 2500); // Đợi 2.5 giây cho hiệu ứng nấu
+    }
+</script>
+</body>
+</html>

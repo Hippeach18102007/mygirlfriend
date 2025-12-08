@@ -428,4 +428,58 @@ public class MessageController {
             }
         }
     }
+
+    @Controller
+    public class TarotController {
+
+        @Autowired
+        private DiscordService discordService;
+
+        @GetMapping("/tarot")
+        public String showTarotPage() {
+            return "tarot"; // Trả về file tarot.html
+        }
+
+        @PostMapping("/api/read-tarot")
+        @ResponseBody
+        public ResponseEntity<String> readTarot(@RequestParam("cardName") String cardName, @RequestParam("meaning") String meaning) {
+            try {
+                String message = "🔮 **THÔNG ĐIỆP VŨ TRỤ** 🔮\n" +
+                        "--------------------------------\n" +
+                        "🃏 **Lá bài:** " + cardName + "\n" +
+                        "✨ **Ý nghĩa:** " + meaning + "\n" +
+                        "--------------------------------\n" +
+                        "👉 *Vợ đang nghĩ về tương lai của hai đứa đấy!*";
+
+                discordService.sendNotification(message);
+                return ResponseEntity.ok("Vũ trụ đã gửi tín hiệu!");
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("Lỗi kết nối");
+            }
+        }
+    }
+    @GetMapping("/kitchen")
+    public String showKitchenPage() {
+        return "kitchen"; // Trả về file kitchen.html
+    }
+
+    @PostMapping("/api/cook-bento")
+    @ResponseBody
+    public ResponseEntity<String> cookBento(@RequestParam("dishList") String dishList, @RequestParam("message") String msg) {
+        try {
+            String notification = "🍱 **SHIP CƠM HỎA TỐC VÀO DOANH TRẠI!** 🍱\n" +
+                    "--------------------------------\n" +
+                    "👩‍🍳 **Đầu bếp:** Vợ Đảm Đang\n" +
+                    "🍲 **Thực đơn:** " + dishList + "\n" +
+                    "💌 **Lời nhắn:** \"" + msg + "\"\n" +
+                    "--------------------------------\n" +
+                    "👉 *Anh nhớ ăn hết không được bỏ mứa nhé!*";
+
+            discordService.sendNotification(notification);
+            return ResponseEntity.ok("Cơm đã được gửi đi!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống");
+        }
+    }
+
 }

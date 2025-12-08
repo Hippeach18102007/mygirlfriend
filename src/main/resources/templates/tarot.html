@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot Tình Yêu 🔮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* Tạo sao lấp lánh nền */
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background-image:
+                    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                    radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                    radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                    radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                    radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 4s infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes twinkle {
+            50% { opacity: 1; }
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #d4af37; /* Màu vàng kim */
+            text-shadow: 0 0 10px #d4af37;
+            margin-bottom: 10px;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #a8a8a8;
+            margin-bottom: 40px;
+            font-style: italic;
+            z-index: 10;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        /* Khu vực bài */
+        .card-container {
+            display: flex;
+            gap: 20px;
+            perspective: 1000px;
+            z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card {
+            width: 200px;
+            height: 350px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-20px);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Mặt trước (Úp) */
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            border: 2px solid #d4af37;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card-front {
+            background: #2c3e50;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Họa tiết mặt sau lá bài */
+        .card-front::after {
+            content: '☪';
+            font-size: 5rem;
+            color: #d4af37;
+            opacity: 0.8;
+        }
+
+        /* Mặt sau (Ngửa - Kết quả) */
+        .card-back {
+            background: #fff;
+            transform: rotateY(180deg);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg) scale(1.1);
+            z-index: 20;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card-name {
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #d4af37;
+            padding-bottom: 5px;
+            width: 100%;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Nút reset */
+        .btn-reset {
+            margin-top: 30px;
+            padding: 10px 30px;
+            background: transparent;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+            display: none; /* Ẩn lúc đầu */
+        }
+        .btn-reset:hover { background: #d4af37; color: #000; }
+
+        /* Hiệu ứng sương mù */
+        .fog {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%; height: 200px;
+            background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="fog"></div>
+
+<a href="/" style="position:absolute; top:20px; left:20px; color:#d4af37; text-decoration:none; z-index:20;">⬅ Trang chủ</a>
+
+<h1>Thông Điệp Vũ Trụ</h1>
+<div class="subtitle">"Hãy tập trung nghĩ về anh, hít thở sâu và chọn một lá bài..."</div>
+
+<div class="card-container">
+    <div class="card" onclick="pickCard(this, 0)">
+        <div class="card-front"></div>
+        <div class="card-back" id="back-0"></div>
+    </div>
+    <div class="card" onclick="pickCard(this, 1)">
+        <div class="card-front"></div>
+        <div class="card-back" id="back-1"></div>
+    </div>
+    <div class="card" onclick="pickCard(this, 2)">
+        <div class="card-front"></div>
+        <div class="card-back" id="back-2"></div>
+    </div>
+</div>
+
+<button class="btn-reset" onclick="location.reload()">Chọn Lại (Ngày Mai)</button>
+
+<script>
+    // --- DỮ LIỆU BÀI TAROT (Chỉ chọn bài ý nghĩa tốt) ---
+    // --- DỮ LIỆU BÀI TAROT (22 Lá Bài Tình Yêu Tuyển Chọn) ---
+    const tarotDeck = [
+        {
+            name: "The Lovers (Tình Nhân)",
+            img: "https://upload.wikimedia.org/wikipedia/en/d/db/RWS_Tarot_06_Lovers.jpg",
+            meaning: "Lá bài đẹp nhất về tình yêu! Nó báo hiệu sự hòa hợp tuyệt đối. Dù có khoảng cách, trái tim hai bạn vẫn đập chung một nhịp. Hai người sinh ra là để dành cho nhau."
+        },
+        {
+            name: "The Sun (Mặt Trời)",
+            img: "https://upload.wikimedia.org/wikipedia/en/1/17/RWS_Tarot_19_Sun.jpg",
+            meaning: "Niềm vui rực rỡ và hạnh phúc trọn vẹn. Mọi lo âu sẽ tan biến, chỉ còn lại ánh sáng ấm áp. Anh ấy chính là mặt trời luôn hướng về phía bạn."
+        },
+        {
+            name: "The Star (Ngôi Sao)",
+            img: "https://upload.wikimedia.org/wikipedia/en/d/db/RWS_Tarot_17_Star.jpg",
+            meaning: "Niềm hy vọng và sự chữa lành. Vũ trụ đang bảo vệ tình yêu này. Khoảng cách địa lý chỉ là thử thách nhỏ để tình yêu thêm bền chặt."
+        },
+        {
+            name: "Two of Cups (Hai Chiếc Cốc)",
+            img: "https://upload.wikimedia.org/wikipedia/en/8/88/Cups02.jpg",
+            meaning: "Sự kết nối tri kỷ. Hai tâm hồn thấu hiểu nhau mà không cần nhiều lời nói. Một mối quan hệ bình đẳng, tôn trọng và yêu thương sâu sắc."
+        },
+        {
+            name: "The Empress (Nữ Hoàng)",
+            img: "https://upload.wikimedia.org/wikipedia/en/d/d2/RWS_Tarot_03_Empress.jpg",
+            meaning: "Vẻ đẹp nữ tính và sự trù phú. Bạn là 'Nữ hoàng' trong lòng anh ấy. Anh ấy yêu bạn vì sự dịu dàng, bao dung và sự quan tâm của bạn."
+        },
+        {
+            name: "The Emperor (Hoàng Đế)",
+            img: "https://upload.wikimedia.org/wikipedia/en/c/c3/RWS_Tarot_04_Emperor.jpg",
+            meaning: "Sự ổn định, bảo vệ và trách nhiệm. Anh ấy đang nỗ lực xây dựng một tương lai vững chắc cho cả hai. Bạn có thể hoàn toàn dựa vào bờ vai này."
+        },
+        {
+            name: "Ace of Cups (Át Cơ)",
+            img: "https://upload.wikimedia.org/wikipedia/en/3/36/Cups01.jpg",
+            meaning: "Cảm xúc dạt dào như nước tràn ly. Tình yêu của hai bạn luôn tươi mới như ngày đầu tiên. Hãy chuẩn bị đón nhận những bất ngờ lãng mạn!"
+        },
+        {
+            name: "Ten of Cups (Mười Chiếc Cốc)",
+            img: "https://upload.wikimedia.org/wikipedia/en/6/69/Cups10.jpg",
+            meaning: "Bức tranh về 'Hạnh phúc mãi mãi về sau'. Lá bài này báo hiệu một gia đình hạnh phúc, một ngôi nhà bão dừng sau cánh cửa và những đứa trẻ."
+        },
+        {
+            name: "Four of Wands (Bốn Gậy)",
+            img: "https://upload.wikimedia.org/wikipedia/en/a/a4/Wands04.jpg",
+            meaning: "Sự ăn mừng và sum họp. Lá bài này thường ám chỉ một đám cưới hoặc việc dọn về sống chung. Ngày anh ấy trở về sẽ là một ngày hội lớn!"
+        },
+        {
+            name: "The World (Thế Giới)",
+            img: "https://upload.wikimedia.org/wikipedia/en/f/ff/RWS_Tarot_21_World.jpg",
+            meaning: "Sự trọn vẹn và cái kết viên mãn. Bạn là 'cả thế giới' của anh ấy. Mọi mảnh ghép đã vào đúng vị trí, hạnh phúc đang ở ngay trước mắt."
+        },
+        {
+            name: "Strength (Sức Mạnh)",
+            img: "https://upload.wikimedia.org/wikipedia/en/f/f5/RWS_Tarot_08_Strength.jpg",
+            meaning: "Sự kiên nhẫn và sức mạnh nội tâm. Bạn đang rất mạnh mẽ khi chờ đợi anh ấy. Tình yêu này được xây dựng trên sự tin tưởng và lòng dũng cảm."
+        },
+        {
+            name: "Wheel of Fortune (Bánh Xe Số Phận)",
+            img: "https://upload.wikimedia.org/wikipedia/en/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg",
+            meaning: "Định mệnh đã sắp đặt. Việc hai bạn gặp nhau không phải ngẫu nhiên mà là duyên số. Thời vận đang xoay chuyển theo hướng tốt đẹp cho cả hai."
+        },
+        {
+            name: "Six of Cups (Sáu Chiếc Cốc)",
+            img: "https://upload.wikimedia.org/wikipedia/en/1/17/Cups06.jpg",
+            meaning: "Kỷ niệm ngọt ngào và sự ngây thơ. Anh ấy đang nhớ về những ngày đầu mới quen, những cái nắm tay rụt rè và nụ cười của bạn."
+        },
+        {
+            name: "Knight of Cups (Hiệp Sĩ Cốc)",
+            img: "https://upload.wikimedia.org/wikipedia/en/f/f6/CupsKnight.jpg",
+            meaning: "Một lời đề nghị lãng mạn sắp đến. Chàng hiệp sĩ (là anh ấy) đang mang tình yêu đến cho bạn. Hãy chờ đợi một tin nhắn hoặc món quà ngọt ngào."
+        },
+        {
+            name: "Ace of Pentacles (Át Tiền)",
+            img: "https://upload.wikimedia.org/wikipedia/en/f/fd/Pents01.jpg",
+            meaning: "Một món quà giá trị hoặc cơ hội mới bền vững. Mối quan hệ này không chỉ lãng mạn mà còn rất thực tế và an toàn."
+        },
+        {
+            name: "Ten of Pentacles (Mười Đồng Tiền)",
+            img: "https://upload.wikimedia.org/wikipedia/en/6/64/Pents10.jpg",
+            meaning: "Sự thịnh vượng và di sản gia đình. Tình yêu này được sự ủng hộ của gia đình và có nền tảng tài chính, tình cảm vững chắc lâu dài."
+        },
+        {
+            name: "The Magician (Ảo Thuật Gia)",
+            img: "https://upload.wikimedia.org/wikipedia/en/d/de/RWS_Tarot_01_Magician.jpg",
+            meaning: "Biến ước mơ thành hiện thực. Anh ấy có đủ khả năng và ý chí để làm cho bạn hạnh phúc. Mọi điều bạn mong muốn trong mối quan hệ này đều có thể xảy ra."
+        },
+        {
+            name: "The Chariot (Cỗ Xe)",
+            img: "https://upload.wikimedia.org/wikipedia/en/9/9b/RWS_Tarot_07_Chariot.jpg",
+            meaning: "Chiến thắng khoảng cách. Dù đường đi có chông gai hay xa xôi, 'chiến binh' của bạn vẫn đang lao về phía trước để sớm được gặp bạn."
+        },
+        {
+            name: "Ace of Wands (Át Gậy)",
+            img: "https://upload.wikimedia.org/wikipedia/en/1/11/Wands01.jpg",
+            meaning: "Ngọn lửa đam mê bùng cháy. Sự thu hút về mặt thể xác và tinh thần giữa hai bạn cực kỳ mạnh mẽ. Tình yêu luôn nồng nhiệt như lửa."
+        },
+        {
+            name: "Justice (Công Lý)",
+            img: "https://upload.wikimedia.org/wikipedia/en/e/e0/RWS_Tarot_11_Justice.jpg",
+            meaning: "Sự công bằng và xứng đáng. Bạn đã trao đi yêu thương chân thành và bạn xứng đáng nhận lại hạnh phúc trọn vẹn. Anh ấy biết trân trọng điều đó."
+        },
+        {
+            name: "Three of Cups (Ba Chiếc Cốc)",
+            img: "https://upload.wikimedia.org/wikipedia/en/7/7a/Cups03.jpg",
+            meaning: "Niềm vui và tình bạn. Trước khi là người yêu, hai bạn là những người bạn tốt nhất của nhau. Mối quan hệ luôn tràn ngập tiếng cười."
+        },
+        {
+            name: "Page of Cups (Tiểu Đồng Cốc)",
+            img: "https://upload.wikimedia.org/wikipedia/en/a/a6/CupsPage.jpg",
+            meaning: "Sự ngạc nhiên dễ thương. Có thể anh ấy đang âm thầm chuẩn bị một bất ngờ nhỏ cho bạn. Hãy mở lòng đón nhận nhé!"
+        }
+    ];
+    let hasPicked = false;
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function pickCard(cardElement, index) {
+        // Kiểm tra xem đã bốc chưa
+        if (hasPicked) return;
+
+        // Kiểm tra localStorage xem hôm nay bốc chưa
+        const today = new Date().toISOString().slice(0, 10);
+        if (localStorage.getItem('last_tarot_date') === today) {
+            alert("Mỗi ngày vũ trụ chỉ gửi 1 thông điệp thôi! Mai quay lại nhé 😘");
+            return;
+        }
+
+        hasPicked = true;
+        localStorage.setItem('last_tarot_date', today);
+
+        // Trộn bài và lấy 1 lá ngẫu nhiên
+        const randomCard = tarotDeck[Math.floor(Math.random() * tarotDeck.length)];
+
+        // Render nội dung vào mặt sau của lá bài ĐƯỢC CHỌN
+        const backFace = document.getElementById(`back-${index}`);
+        backFace.innerHTML = `
+                <img src="${randomCard.img}" class="card-img">
+                <div class="card-name">${randomCard.name}</div>
+                <div class="card-desc">${randomCard.meaning}</div>
+            `;
+
+        // Lật bài
+        cardElement.classList.add('flipped');
+
+        // Làm mờ các lá còn lại
+        const allCards = document.querySelectorAll('.card');
+        allCards.forEach(c => {
+            if (c !== cardElement) {
+                c.style.opacity = '0.3';
+                c.style.pointerEvents = 'none';
+            }
+        });
+
+        // Gửi thông báo Discord
+        fetch(`/api/read-tarot?cardName=${encodeURIComponent(randomCard.name)}&meaning=${encodeURIComponent(randomCard.meaning)}`, {
+            method: 'POST'
+        });
+
+        // Hiện nút reset (cho vui, nhưng logic chặn ngày vẫn hoạt động)
+        setTimeout(() => {
+            document.querySelector('.btn-reset').style.display = 'block';
+        }, 1000);
+    }
+</script>
+</body>
+</html>

@@ -20,7 +20,7 @@ public class MessageController {
     // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Hôm nay anh có nói gì sai thì cho anh xin lỗi nhé. Anh yêu em lắm :( \uD83E\uDEF6\n";
+    private final String loiNhan = "1 con tuần lộc, anh yêu emmmmmm \uD83E\uDEF6\n";
 
     // Email nhận thông báo (cho phần vòng quay may mắn)
     private final String myEmail = "ducdath04243@fpt.edu.vn";
@@ -350,6 +350,82 @@ public class MessageController {
             return ResponseEntity.ok("Đã kê đơn!");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi hệ thống");
+        }
+    }
+    @GetMapping("/heart-game")
+    public String showGamePage() {
+        return "heart-game"; // Trả về file heart-game.html
+    }
+
+    @PostMapping("/api/submit-score")
+    @ResponseBody
+    public ResponseEntity<String> submitScore(@RequestParam("score") int score) {
+        try {
+            // Chỉ gửi tin nhắn nếu điểm số ấn tượng (ví dụ > 10 điểm)
+            if (score > 5) {
+                String message = "🎮 **CAO THỦ GAME BẮT TIM!** 🎮\n" +
+                        "--------------------------------\n" +
+                        "🏆 **Điểm số:** " + score + " điểm\n" +
+                        "💬 *Vợ tay nhanh quá! Anh không trốn thoát được rồi!*\n" +
+                        "--------------------------------";
+                discordService.sendNotification(message);
+            }
+            return ResponseEntity.ok("Đã lưu điểm!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi mạng");
+        }
+    }
+    @GetMapping("/catch-game")
+    public String GamePage() {
+        return "catch-game"; // Trả về file catch-game.html
+    }
+
+    @PostMapping("/api/catch-score")
+    @ResponseBody
+    public ResponseEntity<String> Score(@RequestParam("score") int score) {
+        try {
+            if (score > 20) { // Điểm cao mới báo
+                String message = "🏃‍♀️ **CAO THỦ HỨNG QUÀ!** 🏃‍♀️\n" +
+                        "--------------------------------\n" +
+                        "🏆 **Điểm số:** " + score + " điểm\n" +
+                        "💬 *Vợ hứng quà siêu đỉnh! Anh chuẩn bị quà thật đi là vừa!*\n" +
+                        "--------------------------------";
+                discordService.sendNotification(message);
+            }
+            return ResponseEntity.ok("Ok");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error");
+        }
+    }
+
+    @Controller
+    public class TicketController {
+
+        @Autowired
+        private DiscordService discordService;
+
+        @GetMapping("/ticket")
+        public String showTicketPage() {
+            return "ticket"; // Trả về file ticket.html
+        }
+
+        @PostMapping("/api/check-in")
+        @ResponseBody
+        public ResponseEntity<String> checkIn() {
+            try {
+                String message = "✈️ **CHUYẾN BAY TÌNH YÊU ĐÃ ĐƯỢC XÁC NHẬN!** ✈️\n" +
+                        "--------------------------------\n" +
+                        "🎫 **Hành khách:** Vợ Yêu\n" +
+                        "📍 **Điểm đến:** Tương lai cùng anh\n" +
+                        "✅ **Trạng thái:** Đã Check-in thành công!\n" +
+                        "--------------------------------\n" +
+                        "👉 *Anh hãy giữ lời hứa đưa cô ấy đi chơi ngay khi về nhé!*";
+
+                discordService.sendNotification(message);
+                return ResponseEntity.ok("Check-in thành công!");
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("Lỗi hệ thống");
+            }
         }
     }
 }

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hứng Quà Tình Yêu 🎁</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Trời xanh */
+            font-family: 'VT323', monospace;
+            touch-action: none; /* Chặn zoom trên điện thoại */
+        }
+
+        /* Khu vực chơi game */
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/2560/2560569.png'); /* Mây nền */
+            background-size: 200px;
+            background-repeat: space;
+            overflow: hidden;
+        }
+
+        /* Bảng điểm */
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 2rem;
+            text-shadow: 2px 2px #000;
+            z-index: 10;
+        }
+
+        #timer { right: 10px; left: auto; }
+
+        /* Nhân vật (Cái giỏ hoặc hình chibi) */
+        #player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/4692/4692296.png'); /* Hình con mèo cầm giỏ */
+            background-size: contain;
+            background-repeat: no-repeat;
+            transition: left 0.1s linear; /* Di chuyển mượt */
+            z-index: 5;
+        }
+
+        /* Vật phẩm rơi */
+        .item {
+            position: absolute;
+            top: -50px;
+            width: 50px;
+            height: 50px;
+            font-size: 40px;
+            text-align: center;
+            line-height: 50px;
+            z-index: 4;
+        }
+
+        /* Màn hình bắt đầu/kết thúc */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            color: white;
+            text-align: center;
+        }
+
+        h1 { font-size: 3rem; margin: 0; color: #FF69B4; text-shadow: 3px 3px #fff; }
+        p { font-size: 1.5rem; margin: 10px 0; }
+
+        .btn {
+            background: #FF69B4;
+            color: white;
+            border: 4px solid #fff;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-family: 'VT323', monospace;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-area">
+    <div class="hud">Điểm: <span id="score">0</span></div>
+    <div class="hud" id="timer">60</div>
+
+    <div id="player"></div>
+
+    <div class="overlay" id="start-screen">
+        <h1>HỨNG QUÀ<br>TÌNH YÊU</h1>
+        <p>Di chuyển để hứng quà 🎁<br>Tránh xa bom nhé 💣</p>
+        <button class="btn" onclick="startGame()">BẮT ĐẦU</button>
+        <a href="/" style="color:white; margin-top:20px; text-decoration:none;">⬅ Về trang chủ</a>
+    </div>
+
+    <div class="overlay" id="game-over-screen" style="display: none;">
+        <h1>HẾT GIỜ!</h1>
+        <p>Điểm của em: <span id="final-score">0</span></p>
+        <button class="btn" onclick="location.reload()">CHƠI LẠI</button>
+        <a href="/" style="color:white; margin-top:20px; text-decoration:none;">⬅ Về trang chủ</a>
+    </div>
+
+    <div class="controls-hint" id="hint">Vuốt màn hình hoặc dùng mũi tên trái/phải</div>
+</div>
+
+<script>
+    const gameArea = document.getElementById('game-area');
+    const player = document.getElementById('player');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+
+    let score = 0;
+    let timeLeft = 60;
+    let gameInterval;
+    let spawnInterval;
+    let isPlaying = false;
+    let playerX = 50; // Vị trí player (phần trăm)
+
+    // Các loại vật phẩm
+    const items = [
+        { type: 'good', icon: '🎁', score: 10 },
+        { type: 'good', icon: '💌', score: 5 },
+        { type: 'good', icon: '🌹', score: 5 },
+        { type: 'good', icon: '💎', score: 20 }, // Kim cương hiếm
+        { type: 'bad', icon: '💣', score: -10 },
+        { type: 'bad', icon: '🧱', score: -5 }
+    ];
+
+    // --- ĐIỀU KHIỂN ---
+
+    // 1. Cho máy tính (Phím mũi tên)
+    document.addEventListener('keydown', (e) => {
+        if (!isPlaying) return;
+        if (e.key === 'ArrowLeft') movePlayer(-5);
+        if (e.key === 'ArrowRight') movePlayer(5);
+    });
+
+    // 2. Cho điện thoại (Vuốt / Touch)
+    gameArea.addEventListener('touchmove', (e) => {
+        if (!isPlaying) return;
+        e.preventDefault(); // Chặn cuộn trang
+        const touchX = e.touches[0].clientX;
+        const screenW = window.innerWidth;
+        // Chuyển đổi tọa độ touch sang phần trăm (0 - 100)
+        let newPos = (touchX / screenW) * 100;
+        playerX = newPos;
+        updatePlayerPos();
+    }, { passive: false });
+
+    // Di chuyển chuột (để test trên PC dễ hơn)
+    gameArea.addEventListener('mousemove', (e) => {
+        if (!isPlaying) return;
+        const screenW = window.innerWidth;
+        playerX = (e.clientX / screenW) * 100;
+        updatePlayerPos();
+    });
+
+    function movePlayer(delta) {
+        playerX += delta;
+        updatePlayerPos();
+    }
+
+    function updatePlayerPos() {
+        // Giới hạn trong màn hình (0% - 90%)
+        if (playerX < 0) playerX = 0;
+        if (playerX > 90) playerX = 90;
+        player.style.left = playerX + '%';
+    }
+
+    // --- LOGIC GAME ---
+
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('hint').style.display = 'block';
+
+        // Ẩn hướng dẫn sau 3s
+        setTimeout(() => document.getElementById('hint').style.display = 'none', 3000);
+
+        isPlaying = true;
+        score = 0;
+        timeLeft = 60;
+        scoreEl.innerText = score;
+        timerEl.innerText = timeLeft;
+
+        // Vòng lặp đếm ngược
+        gameInterval = setInterval(() => {
+            timeLeft--;
+            timerEl.innerText = timeLeft;
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+
+        // Vòng lặp sinh vật phẩm (Tốc độ tăng dần có thể làm sau)
+        spawnInterval = setInterval(spawnItem, 600); // 0.6s ra 1 cái
+    }
+
+    function spawnItem() {
+        if (!isPlaying) return;
+
+        const itemData = items[Math.floor(Math.random() * items.length)];
+        const item = document.createElement('div');
+        item.classList.add('item');
+        item.innerText = itemData.icon;
+
+        // Vị trí ngẫu nhiên (0 - 90%)
+        const leftPos = Math.floor(Math.random() * 90);
+        item.style.left = leftPos + '%';
+
+        // Lưu dữ liệu vào element
+        item.dataset.type = itemData.type;
+        item.dataset.score = itemData.score;
+
+        gameArea.appendChild(item);
+
+        // Rơi xuống
+        let itemTop = -50;
+        // Tốc độ rơi ngẫu nhiên
+        let speed = Math.random() * 3 + 2; // 2 - 5px mỗi frame
+
+        const fallInterval = setInterval(() => {
+            if (!isPlaying) {
+                clearInterval(fallInterval);
+                return;
+            }
+
+            itemTop += speed;
+            item.style.top = itemTop + 'px';
+
+            // Kiểm tra va chạm với Player
+            const playerRect = player.getBoundingClientRect();
+            const itemRect = item.getBoundingClientRect();
+
+            // Logic va chạm đơn giản
+            if (
+                itemRect.bottom >= playerRect.top + 20 && // Chạm phần trên giỏ
+                itemRect.top < playerRect.bottom &&
+                itemRect.right >= playerRect.left + 20 &&
+                itemRect.left <= playerRect.right - 20
+            ) {
+                // Trúng!
+                catchItem(item, parseInt(item.dataset.score), fallInterval);
+            }
+
+            // Ra khỏi màn hình
+            if (itemTop > window.innerHeight) {
+                clearInterval(fallInterval);
+                if (item.parentNode) item.remove();
+            }
+        }, 16); // ~60fps
+    }
+
+    function catchItem(item, points, interval) {
+        clearInterval(interval);
+        item.remove();
+
+        score += points;
+        scoreEl.innerText = score;
+
+        // Hiệu ứng nổ/bay điểm (đơn giản hóa là đổi màu điểm số)
+        if (points > 0) {
+            scoreEl.style.color = '#00FF00'; // Xanh
+        } else {
+            scoreEl.style.color = '#FF0000'; // Đỏ
+            // Rung màn hình nếu dính bom
+            gameArea.style.transform = 'translate(5px, 5px)';
+            setTimeout(() => gameArea.style.transform = 'none', 100);
+        }
+        setTimeout(() => scoreEl.style.color = '#fff', 300);
+    }
+
+    function endGame() {
+        isPlaying = false;
+        clearInterval(gameInterval);
+        clearInterval(spawnInterval);
+
+        // Xóa hết vật phẩm còn lại
+        document.querySelectorAll('.item').forEach(e => e.remove());
+
+        document.getElementById('game-over-screen').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+
+        // Gửi điểm về Discord
+        if (score > 0) {
+            fetch(`/api/catch-score?score=${score}`, { method: 'POST' });
+        }
+    }
+
+</script>
+</body>
+</html>

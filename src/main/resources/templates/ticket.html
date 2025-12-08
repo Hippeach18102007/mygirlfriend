@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tấm Vé Tương Lai 🎫</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #e0e5ec;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #374785;
+      font-family: 'Oswald', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    /* Bao ngoài tấm vé */
+    .ticket {
+      display: flex;
+      width: 100%;
+      max-width: 750px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Phần thân vé (Trái) */
+    .ticket-left {
+      flex: 2;
+      padding: 20px;
+      border-right: 2px dashed #ccc;
+      position: relative;
+    }
+
+    /* Phần cuống vé (Phải) */
+    .ticket-right {
+      flex: 1;
+      padding: 20px;
+      background: #374785;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Tạo hình bán nguyệt ở đường cắt */
+    .ticket-left::after, .ticket-right::before {
+      content: '';
+      position: absolute;
+      width: 30px; height: 30px;
+      background: #e0e5ec;
+      border-radius: 50%;
+    }
+    .ticket-left::after { top: -15px; right: -15px; }
+    .ticket-right::before { bottom: -15px; left: -15px; }
+
+    /* Nội dung vé */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #374785;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .airline { font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: #374785; }
+    .class { font-weight: bold; color: #f76c6c; text-transform: uppercase; }
+
+    .flight-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .airport { text-align: center; }
+    .code { font-size: 2.5rem; font-weight: bold; color: #333; display: block; font-family: 'Oswald', sans-serif; }
+    .city { font-size: 0.9rem; color: #777; text-transform: uppercase; }
+
+    .plane-icon {
+      align-self: center;
+      font-size: 2rem;
+      color: #374785;
+      transform: rotate(90deg);
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .label { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+    .value { font-weight: bold; color: #333; font-size: 1.1rem; }
+
+    /* Cuống vé phải */
+    .ticket-right .code { color: white; font-size: 2rem; }
+    .ticket-right .city { color: rgba(255,255,255,0.7); }
+    .barcode {
+      margin-top: auto;
+      height: 40px;
+      background: repeating-linear-gradient(90deg, #fff, #fff 2px, transparent 2px, transparent 4px);
+      width: 100%;
+    }
+
+    /* Nút Check-in */
+    .btn-checkin {
+      margin-top: 30px;
+      padding: 15px 40px;
+      background: #f76c6c;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(247, 108, 108, 0.4);
+      transition: transform 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn-checkin:hover { background: #ff5f5f; }
+    .btn-checkin:active { transform: scale(0.95); }
+    .btn-checkin:disabled { background: #ccc; cursor: default; box-shadow: none; }
+
+    /* Con dấu CONFIRMED */
+    .stamp {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg) scale(0);
+      border: 5px solid #2ecc71;
+      color: #2ecc71;
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      border-radius: 10px;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10;
+      background: rgba(255,255,255,0.9);
+      font-family: 'Oswald', sans-serif;
+    }
+
+    .stamp.show {
+      transform: translate(-50%, -50%) rotate(-15deg) scale(1);
+      opacity: 1;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .ticket { flex-direction: column; }
+      .ticket-left { border-right: none; border-bottom: 2px dashed #ccc; }
+      .ticket-right { flex-direction: row; justify-content: space-between; align-items: center; }
+      .barcode { width: 50px; height: 100%; transform: rotate(90deg); margin: 0; }
+      .ticket-left::after { bottom: -15px; right: -15px; top: auto; }
+      .ticket-right::before { top: -15px; left: -15px; bottom: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>✨ Tấm Vé Tương Lai ✨</h1>
+
+<div class="ticket">
+
+  <div class="ticket-left">
+    <div class="stamp" id="stamp">CONFIRMED</div>
+
+    <div class="header">
+      <div class="airline">LOVE AIRLINES ❤️</div>
+      <div class="class">First Class (VIP)</div>
+    </div>
+
+    <div class="flight-info">
+      <div class="airport">
+        <span class="code">MISS</span>
+        <span class="city">Nỗi Nhớ (Quân Sự)</span>
+      </div>
+      <div class="plane-icon">✈</div>
+      <div class="airport">
+        <span class="code">LOVE</span>
+        <span class="city">Hạnh Phúc (Bên Nhau)</span>
+      </div>
+    </div>
+
+    <div class="details">
+      <div>
+        <div class="label">Hành Khách</div>
+        <div class="value">Vợ Yêu Của Anh</div>
+      </div>
+      <div>
+        <div class="label">Ngày Bay</div>
+        <div class="value">31 DEC 2025</div>
+      </div>
+      <div>
+        <div class="label">Giờ</div>
+        <div class="value">11:00 AM</div>
+      </div>
+      <div style="margin-top: 15px;">
+        <div class="label">Cửa (Gate)</div>
+        <div class="value">A01</div>
+      </div>
+      <div style="margin-top: 15px;">
+        <div class="label">Ghế (Seat)</div>
+        <div class="value">1A (Cạnh Anh)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticket-right">
+    <div>
+      <span class="code">LOVE</span>
+      <div class="city" style="color:rgba(255,255,255,0.8)">From: MISS</div>
+    </div>
+    <div style="margin: 10px 0;">
+      <div class="label" style="color:rgba(255,255,255,0.6)">Passenger</div>
+      <div class="value" style="color:white; font-size: 1rem;">Vợ Yêu</div>
+    </div>
+    <div class="barcode"></div>
+  </div>
+</div>
+
+<button class="btn-checkin" id="btnCheckin" onclick="doCheckIn()">CHECK-IN NGAY</button>
+
+<p style="margin-top: 20px; color: #555; text-align: center; max-width: 500px;">
+  "Tấm vé này là lời hứa của anh. Ngày anh ra quân (30/12), chúng mình sẽ cùng nhau đi một chuyến thật xa để bù đắp những ngày xa cách nhé!"
+</p>
+
+<a href="/" style="margin-top: 30px; text-decoration: none; color: #374785; font-weight: bold;">⬅ Về Trang Chủ</a>
+
+<script>
+  function doCheckIn() {
+    // Kiểm tra nếu đã check-in rồi
+    if (localStorage.getItem('ticket_checked')) {
+      alert("Em đã check-in rồi mà! Vé đã được giữ chỗ an toàn ❤️");
+      return;
+    }
+
+    if (confirm("Em đồng ý check-in và chờ đợi chuyến đi này cùng anh chứ?")) {
+      const btn = document.getElementById('btnCheckin');
+      btn.innerText = "ĐANG XỬ LÝ...";
+      btn.disabled = true;
+
+      fetch('/api/check-in', { method: 'POST' })
+              .then(res => {
+                if (res.ok) {
+                  // Hiện con dấu
+                  document.getElementById('stamp').classList.add('show');
+
+                  btn.innerText = "ĐÃ CHECK-IN THÀNH CÔNG ✅";
+                  localStorage.setItem('ticket_checked', 'true');
+
+                  alert("Tuyệt vời! Anh đã nhận được xác nhận. Hẹn em ngày đó nhé!");
+                }
+              })
+              .catch(err => {
+                alert("Lỗi mạng, nhưng anh biết em đồng ý rồi ^^");
+                document.getElementById('stamp').classList.add('show');
+              });
+    }
+  }
+
+  // Kiểm tra trạng thái khi tải trang
+  if (localStorage.getItem('ticket_checked')) {
+    document.getElementById('stamp').classList.add('show');
+    const btn = document.getElementById('btnCheckin');
+    btn.innerText = "ĐÃ CHECK-IN THÀNH CÔNG ✅";
+    btn.disabled = true;
+  }
+</script>
+
+</body>
+</html>

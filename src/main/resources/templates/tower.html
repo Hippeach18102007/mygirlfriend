@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảo Vệ Trái Tim (Server Authoritative) ❤️</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f0f1a; color: white; font-family: 'Rajdhani', sans-serif;
+            margin: 0; display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start; min-height: 100vh; user-select: none; padding: 20px 0;
+        }
+        .hud {
+            display: flex; justify-content: space-between; width: 800px; margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+        }
+        .stat { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        #money { color: #f1c40f; text-shadow: 0 0 10px #f1c40f; }
+        #health { color: #e74c3c; text-shadow: 0 0 10px #e74c3c; }
+        #wave { color: #3498db; }
+        #gameCanvas { background: #1a1a2e; border: 2px solid #4a4e69; cursor: crosshair; }
+        .toolbar { margin-top: 15px; display: flex; gap: 15px; justify-content: center; }
+        .tower-btn {
+            width: 70px; height: 70px; background: rgba(255,255,255,0.1);
+            border: 2px solid #555; border-radius: 10px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #ccc; font-size: 0.8rem; transition: 0.2s;
+        }
+        .tower-btn.selected { border-color: #00ff00; background: rgba(0, 255, 0, 0.1); }
+        .tower-icon { font-size: 1.5rem; margin-bottom: 5px; }
+        .btn-start {
+            background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; border: none;
+            padding: 0 30px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer;
+        }
+        #gameOverScreen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 200;
+        }
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .level-btn {
+            padding: 15px 40px; margin: 10px; background: transparent; border: 2px solid #00d2d3;
+            color: #00d2d3; font-size: 1.5rem; cursor: pointer; width: 300px; text-align: center;
+        }
+        .level-btn:hover { background: #00d2d3; color: black; }
+    </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: #aaa;">⬅ Trang chủ</a>
+
+<div class="hud">
+    <div class="stat">❤️ <span id="health">Loading...</span></div>
+    <div class="stat">WAVE: <span id="wave">1</span></div>
+    <div class="stat">💰 <span id="money">Loading...</span></div>
+</div>
+
+<div style="position: relative;">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="gameOverScreen">
+        <h1 style="font-size: 4rem; color: #ff4757;">GAME OVER</h1>
+        <button class="level-btn" onclick="chooseLevel(0)">CHƠI LẠI (MAP 1)</button>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div class="tower-btn" onclick="selectTower('BASIC', 50)" id="btn-basic"><div class="tower-icon" style="color:#3498db">🔫</div><div>Súng<br>$50</div></div>
+    <div class="tower-btn" onclick="selectTower('FAST', 120)" id="btn-fast"><div class="tower-icon" style="color:#f1c40f">⚡</div><div>Chớp<br>$120</div></div>
+    <div class="tower-btn" onclick="selectTower('SNIPER', 200)" id="btn-sniper"><div class="tower-icon" style="color:#e74c3c">🚀</div><div>Tên Lửa<br>$200</div></div>
+    <div class="tower-btn" onclick="selectTower('ICE', 150)" id="btn-ice"><div class="tower-icon" style="color:#00d2d3">❄️</div><div>Băng<br>$150</div></div>
+    <button class="btn-start" onclick="sendStartWave()">⚔️ GỌI QUÁI</button>
+</div>
+
+<div class="modal" id="levelScreen">
+    <h1 style="font-size: 3rem; color: #ff9f43; margin-bottom: 30px;">🛡️ LOVE DEFENSE</h1>
+    <div class="level-btn" onclick="chooseLevel(0)">MAP 1: Con Đường Tình Yêu</div>
+    <div class="level-btn" onclick="chooseLevel(1)">MAP 2: Mê Cung Nỗi Nhớ</div>
+    <div class="level-btn" onclick="chooseLevel(2)">MAP 3: Pháo Đài Kiên Cố</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const GRID_SIZE = 40;
+
+    const TOWERS = {
+        'BASIC': { color: '#3498db', range: 100, damage: 20, rate: 30, price: 50 },
+        'FAST':  { color: '#f1c40f', range: 80, damage: 8, rate: 8, price: 120 },
+        'SNIPER':{ color: '#e74c3c', range: 250, damage: 100, rate: 80, price: 200 },
+        'ICE':   { color: '#00d2d3', range: 90, damage: 5, rate: 40, price: 150, slow: 0.5 }
+    };
+
+    const LEVELS = [
+        [ [0,2], [5,2], [5,8], [15,8], [15,4], [19,4] ],
+        [ [0,0], [18,0], [18,12], [2,12], [2,4], [12,4], [12,8], [19,8] ],
+        [ [0,1], [4,1], [4,10], [9,10], [9,2], [14,2], [14,12], [19,12] ]
+    ];
+
+    let path = [];
+    let enemies = [];
+    let towers = [];
+    let projectiles = [];
+    let wave = 1;
+    let waveActive = false;
+    let selectedTowerType = null;
+    let selectedTowerPrice = 0;
+    let stompClient = null;
+    let isGameOver = false;
+
+    // --- KẾT NỐI SERVER ---
+    function connect() {
+        const socket = new SockJS('/ws-game');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/td', function (res) {
+                const data = JSON.parse(res.body);
+                handleServerMessage(data);
+            });
+        });
+    }
+
+    // --- XỬ LÝ DỮ LIỆU TỪ SERVER ---
+    function handleServerMessage(data) {
+        if (data.type === 'SYNC_STATE') {
+            // Cập nhật tiền và máu từ Server (Đảm bảo 2 máy giống hệt nhau)
+            document.getElementById('money').innerText = data.money;
+            document.getElementById('health').innerText = data.health;
+
+            // Nếu có lệnh chuyển map
+            if (data.levelIdx !== undefined && data.levelIdx !== null) {
+                initLevelLocal(data.levelIdx);
+            }
+        }
+        else if (data.type === 'BUILD_CONFIRMED') {
+            // Server xác nhận đã trừ tiền -> Xây tháp
+            towers.push({ x: data.x, y: data.y, type: data.towerType, cooldown: 0 });
+            document.getElementById('money').innerText = data.money; // Cập nhật tiền chuẩn
+        }
+        else if (data.type === 'START_WAVE') {
+            if (!waveActive) startWaveLocal();
+        }
+        else if (data.type === 'GAME_OVER') {
+            isGameOver = true;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('health').innerText = 0;
+        }
+    }
+
+    // --- GỬI LỆNH LÊN SERVER ---
+    function send(data) {
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/td/action", {}, JSON.stringify(data));
+        }
+    }
+
+    // --- LOGIC GAME ---
+    function chooseLevel(idx) {
+        // Gửi lệnh RESET game lên server
+        send({ type: 'RESET', levelIdx: idx });
+    }
+
+    function initLevelLocal(idx) {
+        document.getElementById('levelScreen').style.display = 'none';
+        document.getElementById('gameOverScreen').style.display = 'none';
+        path = parsePath(LEVELS[idx]);
+        towers = []; enemies = []; projectiles = [];
+        wave = 1; waveActive = false; isGameOver = false;
+        document.getElementById('wave').innerText = 1;
+
+        // Start Loop
+        requestAnimationFrame(gameLoop);
+    }
+
+    function parsePath(waypoints) {
+        let fullPath = [];
+        for (let i = 0; i < waypoints.length - 1; i++) {
+            let p1 = waypoints[i];
+            let p2 = waypoints[i+1];
+            let currX = p1[0] * GRID_SIZE + GRID_SIZE/2;
+            let currY = p1[1] * GRID_SIZE + GRID_SIZE/2;
+            fullPath.push({x: currX, y: currY});
+        }
+        let last = waypoints[waypoints.length-1];
+        fullPath.push({x: last[0]*GRID_SIZE + GRID_SIZE/2, y: last[1]*GRID_SIZE + GRID_SIZE/2});
+        return fullPath;
+    }
+
+    function selectTower(type, price) {
+        selectedTowerType = type;
+        selectedTowerPrice = price;
+        document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
+        if(type === 'BASIC') document.getElementById('btn-basic').classList.add('selected');
+        if(type === 'FAST') document.getElementById('btn-fast').classList.add('selected');
+        if(type === 'SNIPER') document.getElementById('btn-sniper').classList.add('selected');
+        if(type === 'ICE') document.getElementById('btn-ice').classList.add('selected');
+    }
+
+    // Bấm chuột để xây
+    canvas.addEventListener('mousedown', (e) => {
+        if (!selectedTowerType || isGameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) / GRID_SIZE);
+        const y = Math.floor((e.clientY - rect.top) / GRID_SIZE);
+
+        // Kiểm tra xem có tháp chưa (Local check để đỡ spam server)
+        for (let t of towers) { if (t.x === x && t.y === y) return; }
+
+        // Gửi yêu cầu xây lên Server
+        // KHÔNG TRỪ TIỀN Ở ĐÂY -> Đợi Server phản hồi BUILD_CONFIRMED mới xây
+        send({ type: 'REQUEST_BUILD', x: x, y: y, towerType: selectedTowerType, price: selectedTowerPrice });
+    });
+
+    function sendStartWave() {
+        if (waveActive) return;
+        send({ type: 'START_WAVE' });
+    }
+
+    function startWaveLocal() {
+        waveActive = true;
+        let enemyCount = 5 + wave * 2;
+        let hp = 10 + wave * 5;
+        let speed = 1.5 + (wave * 0.1);
+        let spawned = 0;
+
+        let interval = setInterval(() => {
+            if(isGameOver) { clearInterval(interval); return; }
+            enemies.push({ x: path[0].x, y: path[0].y, wpIndex: 1, hp: hp, maxHp: hp, speed: speed, slowed: false, frozenTimer: 0 });
+            spawned++;
+            if (spawned >= enemyCount) clearInterval(interval);
+        }, 1000);
+    }
+
+    function gameLoop() {
+        if (isGameOver) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawMap();
+        updateEnemies();
+        updateTowers();
+        updateProjectiles();
+
+        if (waveActive && enemies.length === 0) {
+            waveActive = false;
+            wave++;
+            document.getElementById('wave').innerText = wave;
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ... (Giữ nguyên các hàm drawMap, updateTowers, updateProjectiles như cũ) ...
+    function drawMap() {
+        ctx.strokeStyle = '#2c2c54'; ctx.lineWidth = 1;
+        for (let x = 0; x <= canvas.width; x += GRID_SIZE) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+        for (let y = 0; y <= canvas.height; y += GRID_SIZE) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; ctx.lineWidth = 20; ctx.lineCap = 'round';
+        if (path.length > 0) {
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) { ctx.lineTo(path[i].x, path[i].y); }
+            ctx.stroke();
+        }
+        if(path.length > 0) {
+            ctx.font = "30px Arial"; ctx.fillText("🌀", path[0].x - 15, path[0].y + 10);
+            ctx.fillText("❤️", path[path.length-1].x - 15, path[path.length-1].y + 10);
+        }
+    }
+
+    function updateEnemies() {
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let e = enemies[i];
+            let target = path[e.wpIndex];
+            let dx = target.x - e.x; let dy = target.y - e.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            let currentSpeed = e.slowed ? e.speed * 0.5 : e.speed;
+
+            if (dist <= currentSpeed) {
+                e.x = target.x; e.y = target.y; e.wpIndex++;
+                if (e.wpIndex >= path.length) {
+                    enemies.splice(i, 1);
+                    // Báo server quái đã chạm đích để trừ máu chung
+                    send({ type: 'ENEMY_REACH_GOAL' });
+                    continue;
+                }
+            } else {
+                e.x += (dx / dist) * currentSpeed; e.y += (dy / dist) * currentSpeed;
+            }
+            if (e.slowed) { e.frozenTimer--; if (e.frozenTimer <= 0) e.slowed = false; }
+            ctx.fillStyle = e.slowed ? '#00d2d3' : '#a29bfe'; ctx.beginPath(); ctx.arc(e.x, e.y, 10, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'red'; ctx.fillRect(e.x - 10, e.y - 15, 20, 4);
+            ctx.fillStyle = '#00ff00'; ctx.fillRect(e.x - 10, e.y - 15, 20 * (e.hp / e.maxHp), 4);
+        }
+    }
+
+    function updateTowers() {
+        for (let t of towers) {
+            let stats = TOWERS[t.type];
+            let px = t.x * GRID_SIZE + GRID_SIZE/2; let py = t.y * GRID_SIZE + GRID_SIZE/2;
+            ctx.fillStyle = '#333'; ctx.fillRect(px - 15, py - 15, 30, 30);
+            ctx.fillStyle = stats.color; ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI * 2); ctx.fill();
+            if (t.cooldown <= 0) {
+                let target = null; let minD = Infinity;
+                for (let e of enemies) {
+                    let d = Math.sqrt((e.x - px)**2 + (e.y - py)**2);
+                    if (d <= stats.range && d < minD) { minD = d; target = e; }
+                }
+                if (target) {
+                    projectiles.push({ x: px, y: py, tx: target.x, ty: target.y, target: target, damage: stats.damage, color: stats.color, slow: stats.slow || 0, speed: 10 });
+                    t.cooldown = stats.rate;
+                }
+            } else { t.cooldown--; }
+        }
+    }
+
+    function updateProjectiles() {
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            let p = projectiles[i];
+            let tx = p.target && enemies.includes(p.target) ? p.target.x : p.tx;
+            let ty = p.target && enemies.includes(p.target) ? p.target.y : p.ty;
+            let dx = tx - p.x; let dy = ty - p.y; let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist <= p.speed) {
+                if (p.target && enemies.includes(p.target)) {
+                    p.target.hp -= p.damage;
+                    if (p.slow) { p.target.slowed = true; p.target.frozenTimer = 60; }
+                    if (p.target.hp <= 0) {
+                        let idx = enemies.indexOf(p.target);
+                        if (idx > -1) {
+                            enemies.splice(idx, 1);
+                            // Báo server giết quái để cộng tiền chung
+                            send({ type: 'KILL_ENEMY' });
+                        }
+                    }
+                }
+                projectiles.splice(i, 1);
+            } else {
+                p.x += (dx / dist) * p.speed; p.y += (dy / dist) * p.speed;
+                ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+            }
+        }
+    }
+
+    connect();
+</script>
+</body>
+</html>

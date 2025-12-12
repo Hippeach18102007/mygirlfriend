@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lửa & Nước: Hành Trình Tình Yêu 🔥💧</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2d3436;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        h1 { font-size: 1rem; color: #fab1a0; margin-bottom: 5px; text-align: center; line-height: 1.5; }
+        .level-info { color: #ffeaa7; margin-bottom: 10px; font-size: 0.8rem; }
+
+        /* Màn hình chọn vai */
+        .role-select {
+            background: rgba(0,0,0,0.9);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .btn-role {
+            padding: 15px 30px; margin: 15px; font-size: 1.2rem;
+            font-family: inherit; cursor: pointer; border: 4px solid #fff; color: white;
+            transition: transform 0.2s;
+        }
+        .btn-role:active { transform: scale(0.95); }
+        .btn-fire { background: #e17055; box-shadow: 0 0 15px #e17055; }
+        .btn-water { background: #0984e3; box-shadow: 0 0 15px #0984e3; }
+
+        /* Bản đồ */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(15, 25px); /* Ô nhỏ hơn xíu để vừa màn hình */
+            grid-template-rows: repeat(10, 25px);
+            gap: 1px;
+            background: #636e72;
+            border: 4px solid #fff;
+            padding: 4px;
+        }
+
+        .cell {
+            width: 25px; height: 25px;
+            background: #b2bec3;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 16px; position: relative;
+        }
+
+        /* Định nghĩa ô */
+        .wall { background: #2d3436; border: 1px solid #000; }
+        .fire-pit { background: #d63031; opacity: 0.8; }
+        .water-pit { background: #0984e3; opacity: 0.8; }
+
+        .button {
+            background: radial-gradient(circle, #00b894 40%, #55efc4 100%);
+            border-radius: 50%; transform: scale(0.7);
+            box-shadow: 0 0 5px #00b894;
+        }
+
+        .door {
+            background: #fdcb6e; border: 3px solid #e17055;
+            box-sizing: border-box;
+        }
+        .door::after { content: '🔒'; font-size: 12px; }
+
+        .door.open {
+            background: #b2bec3; border: 2px dashed #aaa; opacity: 0.3;
+        }
+        .door.open::after { content: ''; }
+
+        .goal { animation: beat 1s infinite; }
+        .goal::after { content: '💖'; font-size: 18px; }
+
+        /* Icon người chơi */
+        .player-icon {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 18px; text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 15px;
+            display: grid; grid-template-columns: 50px 50px 50px; gap: 8px;
+        }
+        .btn-move {
+            width: 50px; height: 50px; background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.5); color: white;
+            font-size: 20px; cursor: pointer; border-radius: 10px;
+        }
+        .btn-move:active { background: rgba(255,255,255,0.4); }
+
+        @keyframes beat { 0%, 100% { transform: scale(0.9); } 50% { transform: scale(1.1); } }
+    </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 10px; left: 10px; text-decoration: none; color: #aaa; font-size: 0.8rem;">⬅ Trang chủ</a>
+
+<h1>🔥 Lửa & Nước 💧</h1>
+<div class="level-info" id="levelDisplay">LEVEL 1: Khởi Đầu</div>
+<div id="status" style="font-size: 0.7rem; color: #fab1a0; margin-bottom: 5px; height: 15px;">...</div>
+
+<div id="game-board"></div>
+
+<div class="controls">
+    <div></div>
+    <button class="btn-move" onclick="tryMove(0, -1)">⬆️</button>
+    <div></div>
+    <button class="btn-move" onclick="tryMove(-1, 0)">⬅️</button>
+    <button class="btn-move" onclick="tryMove(0, 1)">⬇️</button>
+    <button class="btn-move" onclick="tryMove(1, 0)">➡️</button>
+</div>
+
+<div class="role-select" id="roleScreen">
+    <h2 style="margin-bottom: 30px; text-align: center; line-height: 1.5;">CHỌN NGƯỜI CHƠI<br><span style="font-size: 0.8rem; color: #aaa;">(Hãy call video để phối hợp nhé!)</span></h2>
+    <button class="btn-role btn-fire" onclick="selectRole('FIRE')">🔥 ANH (LỬA)</button>
+    <button class="btn-role btn-water" onclick="selectRole('WATER')">💧 EM (NƯỚC)</button>
+</div>
+
+<script>
+    // --- CẤU HÌNH CÁC MÀN CHƠI ---
+    // 0: Sàn, 1: Tường, 2: Lửa(chết Nước), 3: Nước(chết Lửa), 4: Nút, 5: Cửa, 9: Đích
+    // 8: Điểm xuất phát của Lửa, 7: Điểm xuất phát của Nước (Mới thêm để tùy biến vị trí bắt đầu)
+
+    const LEVELS = [
+        {
+            name: "LEVEL 1: Khởi Đầu Nan",
+            // Màn này dễ: Nút ở giữa, cửa chắn đường về đích
+            map: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,8,0,0,0,1,0,0,0,3,3,3,0,9,1],
+                [1,0,2,2,0,1,0,1,1,1,1,1,0,9,1],
+                [1,0,2,2,0,0,0,0,0,0,5,1,0,0,1],
+                [1,1,1,1,1,1,1,0,1,1,1,1,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,7,1,1,1,2,2,2,1,3,3,3,1,0,1],
+                [1,0,1,4,0,0,0,0,1,0,0,0,1,0,1],
+                [1,0,1,1,1,1,1,1,1,1,1,1,1,0,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ]
+        },
+        {
+            name: "LEVEL 2: Chia Cắt Đôi Ngả",
+            // Màn này: Lửa ở trên, Nước ở dưới. Lửa phải bấm nút cho Nước qua và ngược lại.
+            map: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,8,0,2,0,4,1,9,9,1,0,0,0,0,1], // Lửa ở trên
+                [1,0,0,2,0,0,1,0,0,1,0,1,1,0,1],
+                [1,1,1,1,1,1,1,5,5,1,0,1,1,0,1], // Cửa ngăn đôi
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1,0,1,1,1,1],
+                [1,7,0,3,0,0,1,0,0,0,0,3,3,0,1], // Nước ở dưới
+                [1,0,0,3,0,4,1,0,1,1,1,1,1,0,1],
+                [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ]
+        },
+        {
+            name: "LEVEL 3: Thử Thách Niềm Tin",
+            // Màn khó: Đường hẹp, nhiều bẫy xen kẽ, nút bấm ở xa
+            map: [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,9,0,0,0,2,3,2,3,0,0,0,0,4,1],
+                [1,9,1,1,0,1,1,1,1,1,0,1,1,1,1],
+                [1,5,1,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,1,0,1,1,1,1,1,1,1,1,1,0,1],
+                [1,0,1,0,2,2,2,0,0,0,3,3,3,0,1],
+                [1,0,1,0,1,1,1,0,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+                [1,8,7,1,1,1,1,1,1,1,1,1,1,4,1], // Xuất phát cùng nhau, nhưng phải chạy đi tìm 2 nút
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ]
+        }
+    ];
+
+    let currentLevelIdx = 0;
+    let mapLayout = []; // Map hiện tại
+    let myRole = null;
+    let stompClient = null;
+    let posFire = {x: 1, y: 1};
+    let posWater = {x: 1, y: 1};
+    let isDoorOpen = false;
+    let isGameWin = false;
+
+    const boardEl = document.getElementById('game-board');
+    const statusEl = document.getElementById('status');
+    const levelDisplay = document.getElementById('levelDisplay');
+
+    // --- KHỞI TẠO LEVEL ---
+    function loadLevel(index) {
+        currentLevelIdx = index;
+        mapLayout = LEVELS[index].map;
+        levelDisplay.innerText = LEVELS[index].name;
+        isDoorOpen = false;
+        isGameWin = false;
+
+        // Tìm vị trí xuất phát từ map (8 và 7)
+        for(let y=0; y<10; y++) {
+            for(let x=0; x<15; x++) {
+                if(mapLayout[y][x] === 8) posFire = {x, y};
+                if(mapLayout[y][x] === 7) posWater = {x, y};
+            }
+        }
+
+        drawMap();
+    }
+
+    function drawMap() {
+        boardEl.innerHTML = '';
+        for(let y=0; y<10; y++) {
+            for(let x=0; x<15; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${x}-${y}`;
+
+                const type = mapLayout[y][x];
+                if (type === 1) cell.classList.add('wall');
+                if (type === 2) cell.classList.add('fire-pit');
+                if (type === 3) cell.classList.add('water-pit');
+                if (type === 4) { cell.classList.add('button'); cell.innerHTML = '🟢'; }
+                if (type === 5) { cell.classList.add('door'); }
+                if (type === 9) { cell.classList.add('goal'); }
+
+                boardEl.appendChild(cell);
+            }
+        }
+        updatePlayers();
+    }
+
+    function updatePlayers() {
+        // Xóa cũ
+        document.querySelectorAll('.player-icon').forEach(e => e.remove());
+
+        // Vẽ Lửa
+        const cellFire = document.getElementById(`cell-${posFire.x}-${posFire.y}`);
+        if(cellFire) {
+            const icon = document.createElement('div');
+            icon.className = 'player-icon';
+            icon.innerHTML = '🔥';
+            cellFire.appendChild(icon);
+        }
+
+        // Vẽ Nước
+        const cellWater = document.getElementById(`cell-${posWater.x}-${posWater.y}`);
+        if(cellWater) {
+            const icon = document.createElement('div');
+            icon.className = 'player-icon';
+            icon.innerHTML = '💧';
+            cellWater.appendChild(icon);
+        }
+
+        checkMechanics();
+    }
+
+    function checkMechanics() {
+        // 1. Kiểm tra Nút bấm (Type 4)
+        const fType = mapLayout[posFire.y][posFire.x];
+        const wType = mapLayout[posWater.y][posWater.x];
+
+        if (fType === 4 || wType === 4) {
+            openDoor();
+        } else {
+            closeDoor();
+        }
+
+        // 2. Kiểm tra Win (Type 9) - Cả 2 phải cùng đứng ở 9
+        // Lưu ý: Có thể có nhiều ô 9, miễn là cả 2 đều đang đứng trên ô 9 bất kỳ
+        if (fType === 9 && wType === 9 && !isGameWin) {
+            isGameWin = true;
+
+            if (currentLevelIdx < LEVELS.length - 1) {
+                // Còn màn sau -> Gửi tín hiệu Next Level
+                statusEl.innerText = "Hay quá! Qua màn tiếp theo...";
+                if(myRole === 'FIRE') { // Chỉ 1 người gửi lệnh để tránh duplicate
+                    setTimeout(() => sendMove(0, 0, 'NEXT_LEVEL'), 1000);
+                }
+            } else {
+                // Hết màn -> Win toàn bộ
+                alert("🏆 CHÚC MỪNG! HAI BẠN ĐÃ PHÁ ĐẢO TOÀN BỘ GAME! 🏆");
+                if(myRole === 'FIRE') sendMove(0, 0, 'WIN');
+            }
+        }
+    }
+
+    function openDoor() {
+        if(isDoorOpen) return;
+        isDoorOpen = true;
+        document.querySelectorAll('.door').forEach(d => d.classList.add('open'));
+    }
+
+    function closeDoor() {
+        if(!isDoorOpen) return;
+        isDoorOpen = false;
+        document.querySelectorAll('.door').forEach(d => d.classList.remove('open'));
+    }
+
+    function tryMove(dx, dy) {
+        if (!myRole || isGameWin) return;
+
+        const cur = myRole === 'FIRE' ? posFire : posWater;
+        const nx = cur.x + dx;
+        const ny = cur.y + dy;
+
+        // Check biên
+        if(nx < 0 || nx >= 15 || ny < 0 || ny >= 10) return;
+
+        const cellType = mapLayout[ny][nx];
+
+        // Tường
+        if (cellType === 1) return;
+
+        // Cửa khóa
+        if (cellType === 5 && !isDoorOpen) {
+            statusEl.innerText = "Cửa khóa! Người kia hãy tìm nút 🟢!";
+            // Hiệu ứng rung nhẹ
+            const btn = document.querySelector('.controls');
+            btn.style.transform = "translateX(5px)";
+            setTimeout(()=>btn.style.transform="translateX(0)", 100);
+            return;
+        }
+
+        // Bẫy chết
+        if (myRole === 'FIRE' && cellType === 3) { // Lửa gặp Nước
+            handleDeath("Lửa tắt ngóm rồi! 🔥💦"); return;
+        }
+        if (myRole === 'WATER' && cellType === 2) { // Nước gặp Lửa
+            handleDeath("Nước bốc hơi rồi! 💧🔥"); return;
+        }
+
+        // Di chuyển OK
+        sendMove(nx, ny, 'MOVE');
+    }
+
+    function handleDeath(msg) {
+        alert(msg + " Chơi lại màn này nhé!");
+        // Reset về đầu màn hiện tại
+        const startKey = myRole === 'FIRE' ? 8 : 7;
+        // Tìm lại vị trí start
+        for(let y=0; y<10; y++) {
+            for(let x=0; x<15; x++) {
+                if(mapLayout[y][x] === startKey) {
+                    sendMove(x, y, 'MOVE');
+                    return;
+                }
+            }
+        }
+    }
+
+    // --- WEBSOCKET ---
+    function selectRole(role) {
+        myRole = role;
+        document.getElementById('roleScreen').style.display = 'none';
+        statusEl.innerText = "Vai trò: " + (role==='FIRE'?"🔥":"💧");
+
+        const socket = new SockJS('/ws-game'); // Dùng chung endpoint cũ
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/adventure', function (res) {
+                const data = JSON.parse(res.body);
+
+                if (data.action === 'NEXT_LEVEL') {
+                    currentLevelIdx++;
+                    if (currentLevelIdx < LEVELS.length) {
+                        loadLevel(currentLevelIdx);
+                    }
+                    return;
+                }
+
+                if (data.role === 'FIRE') posFire = {x: data.x, y: data.y};
+                if (data.role === 'WATER') posWater = {x: data.x, y: data.y};
+                updatePlayers();
+            });
+        });
+
+        // Load màn 1
+        loadLevel(0);
+    }
+
+    function sendMove(x, y, action) {
+        stompClient.send("/app/adventure/move", {}, JSON.stringify({
+            role: myRole, x: x, y: y, action: action
+        }));
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') tryMove(0, -1);
+        if (e.key === 'ArrowDown') tryMove(0, 1);
+        if (e.key === 'ArrowLeft') tryMove(-1, 0);
+        if (e.key === 'ArrowRight') tryMove(1, 0);
+    });
+
+</script>
+</body>
+</html>

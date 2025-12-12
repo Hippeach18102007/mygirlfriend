@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Cinema 🎬</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #141414; /* Màu nền Netflix */
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', cursive;
+            color: #e50914; /* Đỏ Netflix */
+            font-size: 3rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(229, 9, 20, 0.7);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar {
+            width: 40px; height: 40px;
+            border-radius: 5px;
+            background: #e50914;
+        }
+
+        /* Danh sách phim */
+        h2 { font-size: 1.5rem; margin-bottom: 15px; padding-left: 20px; }
+
+        .movie-row {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        /* Ẩn thanh cuộn nhưng vẫn cuộn được */
+        .movie-row::-webkit-scrollbar { display: none; }
+
+        .movie-card {
+            min-width: 200px;
+            height: 300px;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .movie-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        /* Modal chi tiết phim */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background: #181818;
+            width: 90%; max-width: 800px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 50px rgba(229, 9, 20, 0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* Tỷ lệ 16:9 */
+            height: 0;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: none;
+        }
+
+        .info-section {
+            padding: 30px;
+        }
+
+        .movie-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: 'Bebas Neue', cursive;
+        }
+
+        .movie-desc {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .btn-invite {
+            background-color: white;
+            color: black;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-invite:hover {
+            background-color: #e5e5e5; /* Xám nhẹ */
+        }
+
+        .btn-invite:active { transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+
+<a href="/" style="position:fixed; top:20px; left:20px; color:white; text-decoration:none; z-index:100; font-weight:bold;">⬅ Trang chủ</a>
+
+<div class="header" style="justify-content: center;">
+    <div class="logo">LOVE CINEMA</div>
+</div>
+
+<h2>🔥 Phim Bom Tấn Dành Cho Em</h2>
+<div class="movie-row" id="trending-row">
+</div>
+
+<h2>💕 Phim Lãng Mạn Mình Cùng Xem</h2>
+<div class="movie-row" id="romance-row">
+</div>
+
+<h2>🤣 Cười Xỉu Cùng Nhau</h2>
+<div class="movie-row" id="comedy-row">
+</div>
+
+<div class="modal" id="movieModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+
+        <div class="video-container">
+            <iframe id="youtube-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+
+        <div class="info-section">
+            <div class="movie-title" id="modal-title">Tên Phim</div>
+            <div class="movie-desc" id="modal-desc">Mô tả phim...</div>
+
+            <button class="btn-invite" onclick="invite()">
+                <span>🍿</span> Mời Anh Xem Chung
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DỮ LIỆU PHIM (Bạn thay đổi ID Youtube và Link ảnh nhé)
+    // YouTube ID là phần sau v= trên link (VD: youtube.com/watch?v=dQw4w9WgXcQ -> dQw4w9WgXcQ)
+
+    const movies = [
+        {
+            category: "trending",
+            title: "Titanic",
+            img: "https://m.media-amazon.com/images/M/MV5BMDdmZGU3NDQtY2E5My00ZTliLWIzOTUtMTY4ZGI1YjdiNjk3XkEyXkFqcGdeQXVyNTA4NzY1MzY@._V1_FMjpg_UX1000_.jpg",
+            videoId: "kVrqfYjkTdQ",
+            desc: "Một câu chuyện tình yêu kinh điển trên con tàu huyền thoại. Chuẩn bị khăn giấy nhé em!"
+        },
+        {
+            category: "trending",
+            title: "Avatar 2: The Way of Water",
+            img: "https://m.media-amazon.com/images/M/MV5BYjhiNjBlODctY2ZiOC00YjVlLWFlNzAtNTVhNzM1YjI1NzMxXkEyXkFqcGdeQXVyMjQxNTE1MDA@._V1_.jpg",
+            videoId: "d9MyqF3kNUA",
+            desc: "Hình ảnh tuyệt đẹp, xem để cảm nhận thế giới đại dương kỳ vĩ."
+        },
+        {
+            category: "romance",
+            title: "About Time",
+            img: "https://m.media-amazon.com/images/M/MV5BMTA1ODUzMDA3NzFeQTJeQWpwZ15BbWU3MDgxMTYxNTk@._V1_.jpg",
+            videoId: "7OIFnRk8Fey", // Trailer ID giả định
+            desc: "Nếu có thể quay ngược thời gian, anh vẫn sẽ chọn yêu em ngay từ cái nhìn đầu tiên."
+        },
+        {
+            category: "romance",
+            title: "La La Land",
+            img: "https://m.media-amazon.com/images/M/MV5BMzUzNDM2NzM2MV5BMl5BanBnXkFtZTgwNTM3NTg4OTE@._V1_.jpg",
+            videoId: "0pdqf4P9MB8",
+            desc: "Nhạc hay, cảnh đẹp và một tình yêu đầy day dứt. Mình cùng xem nhé?"
+        },
+        {
+            category: "comedy",
+            title: "Minions: The Rise of Gru",
+            img: "https://m.media-amazon.com/images/M/MV5BZDQyODUwM2MtNzA0YS00ZjdmLTgzMjItZWRjN2YyYWE5ZTNjXkEyXkFqcGdeQXVyMTI2MzY1MjM1._V1_FMjpg_UX1000_.jpg",
+            videoId: "6DxjJzmYsXo",
+            desc: "Cười xả stress với mấy chú chuối vàng khè này nào!"
+        }
+        // Bạn có thể thêm nhiều phim nữa
+    ];
+
+    const trendingRow = document.getElementById('trending-row');
+    const romanceRow = document.getElementById('romance-row');
+    const comedyRow = document.getElementById('comedy-row');
+    const modal = document.getElementById('movieModal');
+    const iframe = document.getElementById('youtube-frame');
+
+    let currentMovieName = "";
+
+    // Render phim ra màn hình
+    movies.forEach(movie => {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.onclick = () => openModal(movie);
+        card.innerHTML = `<img src="${movie.img}" class="movie-img">`;
+
+        if (movie.category === 'trending') trendingRow.appendChild(card);
+        else if (movie.category === 'romance') romanceRow.appendChild(card);
+        else if (movie.category === 'comedy') comedyRow.appendChild(card);
+    });
+
+    function openModal(movie) {
+        currentMovieName = movie.title;
+        document.getElementById('modal-title').innerText = movie.title;
+        document.getElementById('modal-desc').innerText = movie.desc;
+
+        // Link embed youtube
+        iframe.src = `https://www.youtube.com/embed/${movie.videoId}?autoplay=1`;
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        iframe.src = ""; // Tắt video khi đóng modal
+    }
+
+    function invite() {
+        if(confirm(`Em muốn mời anh xem phim "${currentMovieName}" chứ?`)) {
+            fetch(`/api/invite-movie?movieName=${encodeURIComponent(currentMovieName)}`, {
+                method: 'POST'
+            })
+                .then(res => {
+                    alert("Đã gửi lời mời! Anh sẽ mang bỏng ngô đến ngay 🍿");
+                    closeModal();
+                })
+                .catch(err => alert("Lỗi mạng!"));
+        }
+    }
+
+    // Đóng modal khi click ra ngoài
+    window.onclick = function(event) {
+        if (event.target == modal) closeModal();
+    }
+</script>
+</body>
+</html>

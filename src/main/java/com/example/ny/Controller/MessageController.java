@@ -1,11 +1,14 @@
 package com.example.ny.Controller;
 
+import com.example.ny.Model.GameMessage;
 import com.example.ny.Service.DiscordService;
 import com.example.ny.Service.EmailService;
 import jakarta.servlet.http.HttpSession; // Nhớ import cái này
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +24,7 @@ public class MessageController {
     // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "1 con tuần lộc, anh yêu emmmmmm \uD83E\uDEF6\n";
+    private final String loiNhan = "Nay đi ngooài đường mệt rồi. Đi nghỉ ngơi đi nha emmmm\uD83E\uDEF6\n";
     private final String myEmail = "ducdath04243@fpt.edu.vn";
 
     // 🔥 MẬT KHẨU ĐỂ VÀO TRANG (Bạn sửa ở đây nhé)
@@ -117,18 +120,42 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/ghep-hinh") public String showPuzzlePage() { return "ghep-hinh"; }
-    @GetMapping("/ky-niem") public String showAlbumPage() { return "ky-niem"; }
-    @GetMapping("/nghe-nhac") public String showMusicPage() { return "nhac"; }
-    @GetMapping("/dem-ngay") public String showCountdownPage() { return "dem-ngay"; }
+    @GetMapping("/ghep-hinh")
+    public String showPuzzlePage() {
+        return "ghep-hinh";
+    }
+
+    @GetMapping("/ky-niem")
+    public String showAlbumPage() {
+        return "ky-niem";
+    }
+
+    @GetMapping("/nghe-nhac")
+    public String showMusicPage() {
+        return "nhac";
+    }
+
+    @GetMapping("/dem-ngay")
+    public String showCountdownPage() {
+        return "dem-ngay";
+    }
 
     static class PrizeDto {
         private String prize;
-        public String getPrize() { return prize; }
-        public void setPrize(String prize) { this.prize = prize; }
+
+        public String getPrize() {
+            return prize;
+        }
+
+        public void setPrize(String prize) {
+            this.prize = prize;
+        }
     }
 
-    @GetMapping("/vong-quay") public String showWheelPage() { return "vong-quay"; }
+    @GetMapping("/vong-quay")
+    public String showWheelPage() {
+        return "vong-quay";
+    }
 
     @PostMapping("/vong-quay/thong-bao")
     @ResponseBody
@@ -141,17 +168,60 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/mon-an") public String showFoodPickerPage() { return "mon-an"; }
-    @GetMapping("/bai-hoc") public String showLessonsPage() { return "bai-hoc"; }
-    @GetMapping("/tro-choi-nho") public String showMemoryGamePage() { return "tro-choi-nho"; }
-    @GetMapping("/trac-nghiem") public String showQuizPage() { return "trac-nghiem"; }
-    @GetMapping("/truth-or-dare") public String showTruthOrDarePage() { return "truth-or-dare"; }
-    @GetMapping("/thoi-tiet") public String showWeatherPage() { return "thoi-tiet"; }
-    @GetMapping("/open-when") public String showOpenWhenPage() { return "open-when"; }
-    @GetMapping("/timeline") public String showTimelinePage() { return "timeline"; }
-    @GetMapping("/love-map") public String showMapPage() { return "love-map"; }
-    @GetMapping("/safe") public String showSafePage() { return "safe"; }
-    @GetMapping("/store") public String showStorePage() { return "store"; }
+    @GetMapping("/mon-an")
+    public String showFoodPickerPage() {
+        return "mon-an";
+    }
+
+    @GetMapping("/bai-hoc")
+    public String showLessonsPage() {
+        return "bai-hoc";
+    }
+
+    @GetMapping("/tro-choi-nho")
+    public String showMemoryGamePage() {
+        return "tro-choi-nho";
+    }
+
+    @GetMapping("/trac-nghiem")
+    public String showQuizPage() {
+        return "trac-nghiem";
+    }
+
+    @GetMapping("/truth-or-dare")
+    public String showTruthOrDarePage() {
+        return "truth-or-dare";
+    }
+
+    @GetMapping("/thoi-tiet")
+    public String showWeatherPage() {
+        return "thoi-tiet";
+    }
+
+    @GetMapping("/open-when")
+    public String showOpenWhenPage() {
+        return "open-when";
+    }
+
+    @GetMapping("/timeline")
+    public String showTimelinePage() {
+        return "timeline";
+    }
+
+    @GetMapping("/love-map")
+    public String showMapPage() {
+        return "love-map";
+    }
+
+    @GetMapping("/safe")
+    public String showSafePage() {
+        return "safe";
+    }
+
+    @GetMapping("/store")
+    public String showStorePage() {
+        return "store";
+    }
 
     @PostMapping("/api/buy-item")
     @ResponseBody
@@ -165,7 +235,10 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/challenge") public String showChallengePage() { return "challenge"; }
+    @GetMapping("/challenge")
+    public String showChallengePage() {
+        return "challenge";
+    }
 
     @PostMapping("/api/complete-challenge")
     @ResponseBody
@@ -193,7 +266,10 @@ public class MessageController {
         put(3, "Voucher 200k ở Ốc sên");
     }};
 
-    @GetMapping("/christmas") public String showChristmasPage() { return "christmas"; }
+    @GetMapping("/christmas")
+    public String showChristmasPage() {
+        return "christmas";
+    }
 
     @PostMapping("/api/open-gift")
     @ResponseBody
@@ -207,11 +283,30 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/game-kho") public String showHardGamePage() { return "game-kho"; }
-    @GetMapping("/game-2048") public String show2048Game() { return "game-2048"; }
-    @GetMapping("/game-piano") public String showPianoGame() { return "game-piano"; }
-    @GetMapping("/game-snake") public String showSnakeGame() { return "game-snake"; }
-    @GetMapping("/garden") public String showGardenPage() { return "garden"; }
+    @GetMapping("/game-kho")
+    public String showHardGamePage() {
+        return "game-kho";
+    }
+
+    @GetMapping("/game-2048")
+    public String show2048Game() {
+        return "game-2048";
+    }
+
+    @GetMapping("/game-piano")
+    public String showPianoGame() {
+        return "game-piano";
+    }
+
+    @GetMapping("/game-snake")
+    public String showSnakeGame() {
+        return "game-snake";
+    }
+
+    @GetMapping("/garden")
+    public String showGardenPage() {
+        return "garden";
+    }
 
     @PostMapping("/api/water-plant")
     @ResponseBody
@@ -224,7 +319,10 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/pharmacy") public String showPharmacyPage() { return "pharmacy"; }
+    @GetMapping("/pharmacy")
+    public String showPharmacyPage() {
+        return "pharmacy";
+    }
 
     @PostMapping("/api/ke-don")
     @ResponseBody
@@ -237,7 +335,10 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/heart-game") public String showHeartGamePage() { return "heart-game"; }
+    @GetMapping("/heart-game")
+    public String showHeartGamePage() {
+        return "heart-game";
+    }
 
     @PostMapping("/api/submit-score")
     @ResponseBody
@@ -252,8 +353,292 @@ public class MessageController {
         }
     }
 
-    @GetMapping("/catch-game") public String showCatchGamePage() { return "catch-game"; } // Nếu có file này
-    @GetMapping("/ticket") public String showTicketPage() { return "ticket"; }
-    @GetMapping("/tarot") public String showTarotPage() { return "tarot"; }
-    @GetMapping("/kitchen") public String showKitchenPage() { return "kitchen"; }
+    @GetMapping("/catch-game")
+    public String showCatchGamePage() {
+        return "catch-game";
+    } // Nếu có file này
+
+    @GetMapping("/ticket")
+    public String showTicketPage() {
+        return "ticket";
+    }
+
+    @GetMapping("/tarot")
+    public String showTarotPage() {
+        return "tarot";
+    }
+
+    @GetMapping("/kitchen")
+    public String showKitchenPage() {
+        return "kitchen";
+    }
+
+    @GetMapping("/cinema")
+    public String showCinemaPage() {
+        return "cinema"; // Trả về file cinema.html
+    }
+
+    @PostMapping("/api/invite-movie")
+    @ResponseBody
+    public ResponseEntity<String> inviteMovie(@RequestParam("movieName") String movieName) {
+        try {
+            String message = "🎬 **LỜI MỜI XEM PHIM!** 🎬\n" +
+                    "--------------------------------\n" +
+                    "🍿 **Phim:** " + movieName + "\n" +
+                    "🥰 **Người mời:** Vợ Yêu\n" +
+                    "💬 **Lời nhắn:** \"Phim này hay quá, hôm nào mình cùng xem nha anh!\"\n" +
+                    "--------------------------------\n" +
+                    "👉 *Anh nhớ sắp xếp thời gian nhé!*";
+
+            discordService.sendNotification(message);
+            return ResponseEntity.ok("Đã gửi lời mời xem phim!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi hệ thống");
+        }
+
+    }
+
+    @GetMapping("/star")
+    public String showStarPage() {
+        return "star"; // Trả về file star.html
+    }
+
+    @PostMapping("/api/fold-star")
+    @ResponseBody
+    public ResponseEntity<String> foldStar(@RequestParam("wish") String wish, @RequestParam("count") int count) {
+        try {
+            String message = "🌟 **NGÔI SAO HY VỌNG** 🌟\n" +
+                    "--------------------------------\n" +
+                    "🔢 **Ngôi sao thứ:** " + count + "\n" +
+                    "🙏 **Điều ước:** \"" + wish + "\"\n" +
+                    "--------------------------------\n" +
+                    "👉 *Cố lên! Đủ 1000 ngôi sao là anh về tới nhà rồi!*";
+
+            discordService.sendNotification(message);
+            return ResponseEntity.ok("Điều ước đã được gửi tới vũ trụ!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi kết nối");
+        }
+    }
+
+    private String[] board = new String[9];
+    private String turn = "X"; // X đi trước
+
+    @GetMapping("/game-online")
+    public String showGamePage() {
+        return "game-online";
+    }
+
+    // Khi người chơi đánh một nước
+    @MessageMapping("/move") // Nhận từ /app/move
+    @SendTo("/topic/game")   // Gửi ra /topic/game cho cả 2 người
+    public GameMessage processMove(GameMessage message) {
+        if (message.getType().equals("RESET")) {
+            // Reset bàn cờ
+            board = new String[9];
+            turn = "X";
+            return new GameMessage("RESET", -1, "", "Ván mới bắt đầu!");
+        }
+
+        // Logic đánh cờ
+        if (board[message.getIndex()] == null) {
+            board[message.getIndex()] = message.getPlayer();
+
+            // Đổi lượt
+            turn = message.getPlayer().equals("X") ? "O" : "X";
+
+            // Kiểm tra thắng thua (Logic đơn giản)
+            if (checkWin(message.getPlayer())) {
+                discordService.sendNotification("🎮 **KẾT QUẢ:** " + (message.getPlayer().equals("X") ? "Anh Đức" : "Vợ Yêu") + " đã thắng Cờ Caro!");
+                return new GameMessage("WIN", message.getIndex(), message.getPlayer(), "Chiến thắng!");
+            }
+
+            return message;
+        }
+        return null; // Ô đã đánh rồi
+    }
+
+    private boolean checkWin(String p) {
+        // Các trường hợp thắng (0-1-2, 3-4-5, ...)
+        int[][] wins = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, {0, 4, 8}, {2, 4, 6}};
+        for (int[] w : wins) {
+            if (p.equals(board[w[0]]) && p.equals(board[w[1]]) && p.equals(board[w[2]])) return true;
+        }
+        return false;
+    }
+
+    @GetMapping("/adventure")
+    public String showAdventurePage() {
+        return "adventure"; // Trả về file adventure.html
+    }
+
+    // Class để chứa dữ liệu di chuyển
+    public static class MoveData {
+        public String role; // "FIRE" hoặc "WATER"
+        public int x;
+        public int y;
+        public String action; // "MOVE" hoặc "WIN" hoặc "RESET"
+        // Getter, Setter (Bạn tự thêm hoặc dùng public cho nhanh)
+    }
+
+    @MessageMapping("/adventure/move")
+    @SendTo("/topic/adventure")
+    public MoveData syncMove(MoveData data) {
+        if ("WIN".equals(data.action)) {
+            // Nếu cả 2 cùng thắng
+            discordService.sendNotification("🏆 **GAME LỬA & NƯỚC:** Hai bạn đã phá đảo thành công! Đồng tâm hiệp lực quá đỉnh!");
+        }
+        return data;
+    }
+
+    @Controller
+    public class ShooterController {
+
+        @Autowired
+        private DiscordService discordService;
+
+        // LƯU TRẠNG THÁI GAME TRÊN SERVER
+        private static int hpBoy = 100;
+        private static int hpGirl = 100;
+
+        @GetMapping("/shooter")
+        public String showShooterPage() {
+            return "shooter";
+        }
+
+        public static class ShooterData {
+            public String role; // "BOY" hoặc "GIRL"
+            public String action; // "MOVE", "SHOOT", "HIT", "SYNC_HP", "RESET"
+            public double y;
+            public double bulletY;
+            public int hpBoy;  // Gửi về client
+            public int hpGirl; // Gửi về client
+        }
+
+        @MessageMapping("/shooter/action")
+        @SendTo("/topic/shooter")
+        public ShooterData handleAction(ShooterData data) {
+            ShooterData response = new ShooterData();
+            response.role = data.role;
+            response.action = data.action;
+            response.y = data.y;
+            response.bulletY = data.bulletY;
+
+            switch (data.action) {
+                case "RESET":
+                    hpBoy = 100;
+                    hpGirl = 100;
+                    response.action = "SYNC_HP";
+                    break;
+
+                case "HIT":
+                    // Ai bị trúng đạn thì trừ máu người đó
+                    if ("BOY".equals(data.role)) { // Role là người BỊ BẮN
+                        hpBoy = Math.max(0, hpBoy - 10);
+                    } else {
+                        hpGirl = Math.max(0, hpGirl - 10);
+                    }
+
+                    // Chuyển thành lệnh đồng bộ máu
+                    response.action = "SYNC_HP";
+
+                    // Kiểm tra thắng thua
+                    if (hpBoy <= 0 || hpGirl <= 0) {
+                        String winner = (hpBoy <= 0) ? "Vợ Yêu" : "Anh Đức";
+                        discordService.sendNotification("🔫 **ĐẠI CHIẾN TÌNH YÊU:** " + winner + " đã chiến thắng! Người thua chuẩn bị chịu phạt!");
+                    }
+                    break;
+
+                case "MOVE":
+                case "SHOOT":
+                    // Giữ nguyên các thông số di chuyển/bắn
+                    break;
+            }
+
+            // Luôn gửi kèm máu hiện tại để đồng bộ
+            response.hpBoy = hpBoy;
+            response.hpGirl = hpGirl;
+
+            return response;
+        }
+
+        private static int serverMoney = 150;
+        private static int serverHealth = 20;
+
+        @GetMapping("/tower")
+        public String showGamePagetowerDefensePage() {
+            return "tower"; // Trả về file tower.html
+        }
+
+        public static class TDAction {
+            public String type; // "REQUEST_BUILD", "BUILD_CONFIRMED", "GAME_OVER", "SYNC_STATE", "KILL_ENEMY", "RESET"
+            public int x;
+            public int y;
+            public String towerType;
+            public int price;   // Giá tiền tháp (Gửi từ client lên)
+            public int money;   // Tiền hiện tại (Gửi về client)
+            public int health;  // Máu hiện tại
+            public int levelIdx;
+        }
+
+        @MessageMapping("/td/action")
+        @SendTo("/topic/td")
+        public TDAction handleAction(TDAction action) {
+            TDAction response = new TDAction();
+
+            switch (action.type) {
+                case "RESET": // Chơi lại từ đầu
+                    serverMoney = 150;
+                    serverHealth = 20;
+                    response.type = "SYNC_STATE";
+                    response.money = serverMoney;
+                    response.health = serverHealth;
+                    response.levelIdx = action.levelIdx; // Báo chuyển map
+                    break;
+
+                case "REQUEST_BUILD": // Người chơi xin xây tháp
+                    if (serverMoney >= action.price) {
+                        serverMoney -= action.price; // Server trừ tiền
+
+                        // Trả về lệnh xác nhận xây
+                        response.type = "BUILD_CONFIRMED";
+                        response.x = action.x;
+                        response.y = action.y;
+                        response.towerType = action.towerType;
+                        response.money = serverMoney; // Gửi số tiền chuẩn về
+                    } else {
+                        // Không đủ tiền -> Gửi gói tin rỗng hoặc loại bỏ (Client tự hiểu)
+                        return null;
+                    }
+                    break;
+
+                case "KILL_ENEMY": // Giết quái được tiền
+                    serverMoney += 10;
+                    response.type = "SYNC_STATE";
+                    response.money = serverMoney;
+                    response.health = serverHealth;
+                    break;
+
+                case "ENEMY_REACH_GOAL": // Quái chạm đích -> Trừ máu
+                    serverHealth = Math.max(0, serverHealth - 1);
+                    response.type = "SYNC_STATE";
+                    response.money = serverMoney;
+                    response.health = serverHealth;
+
+                    if (serverHealth <= 0) {
+                        response.type = "GAME_OVER";
+                        discordService.sendNotification("🏰 **BẢO VỆ TRÁI TIM:** Thất thủ rồi! Game Over!");
+                    }
+                    break;
+
+                case "START_WAVE":
+                    response.type = "START_WAVE";
+                    break;
+
+                default:
+                    return action;
+            }
+            return response;
+        }
+    }
 }

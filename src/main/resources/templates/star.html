@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hũ Sao Hy Vọng 🌟</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); /* Trời đêm */
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'Quicksand', sans-serif;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-family: 'Dancing Script', cursive;
+      font-size: 3rem;
+      color: #f1c40f;
+      text-shadow: 0 0 10px #f1c40f;
+      margin-top: 20px;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      opacity: 0.8;
+      margin-bottom: 30px;
+    }
+
+    /* Lọ thủy tinh */
+    .jar-container {
+      position: relative;
+      width: 200px;
+      height: 300px;
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      border-top: none;
+      border-radius: 0 0 50px 50px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(2px);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 30px;
+      overflow: hidden; /* Sao không rơi ra ngoài */
+    }
+
+    /* Cổ lọ */
+    .jar-container::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 20px;
+      width: 152px;
+      height: 20px;
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Nắp lọ (Mở ra khi gấp sao) */
+    .lid {
+      position: absolute;
+      top: -30px;
+      left: 10px;
+      width: 180px;
+      height: 15px;
+      background: #8e44ad;
+      border-radius: 5px;
+      transition: transform 0.5s;
+      z-index: 10;
+    }
+
+    .jar-container.open .lid {
+      transform: translateY(-50px) rotate(10deg);
+    }
+
+    /* Ngôi sao */
+    .star {
+      position: absolute;
+      font-size: 20px;
+      color: #f1c40f;
+      text-shadow: 0 0 5px #f1c40f;
+      animation: fallIn 1s ease-out forwards;
+    }
+
+    /* Màu sắc ngẫu nhiên cho sao */
+    .star:nth-child(2n) { color: #e74c3c; text-shadow: 0 0 5px #e74c3c; }
+    .star:nth-child(3n) { color: #3498db; text-shadow: 0 0 5px #3498db; }
+    .star:nth-child(4n) { color: #2ecc71; text-shadow: 0 0 5px #2ecc71; }
+    .star:nth-child(5n) { color: #9b59b6; text-shadow: 0 0 5px #9b59b6; }
+
+    @keyframes fallIn {
+      0% { top: -50px; opacity: 1; transform: rotate(0deg); }
+      100% { top: var(--target-top); opacity: 1; transform: rotate(360deg); }
+    }
+
+    /* Khu vực nhập liệu */
+    .input-area {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      border-radius: 20px;
+      border: none;
+      margin-bottom: 15px;
+      font-family: inherit;
+    }
+
+    button {
+      background: linear-gradient(45deg, #f1c40f, #f39c12);
+      border: none;
+      padding: 10px 30px;
+      color: #2c3e50;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+
+    button:hover { transform: scale(1.05); box-shadow: 0 0 15px #f1c40f; }
+
+    .count-display {
+      margin-top: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: #fff; opacity: 0.7;">⬅ Trang chủ</a>
+
+<h1>Hũ Sao Hy Vọng 🌟</h1>
+<div class="subtitle">"Gấp một ngôi sao, gửi vào đó một nỗi nhớ..."</div>
+
+<div class="jar-container" id="jar">
+  <div class="lid"></div>
+</div>
+
+<div class="input-area">
+  <input type="text" id="wishInput" placeholder="Điều ước hôm nay của em là...">
+  <br>
+  <button onclick="addStar()">✨ Gấp Sao</button>
+  <div class="count-display">Đã gấp được: <span id="count">0</span> ngôi sao</div>
+</div>
+
+<script>
+  const jar = document.getElementById('jar');
+  const countEl = document.getElementById('count');
+  const wishInput = document.getElementById('wishInput');
+
+  // Lấy số lượng sao từ bộ nhớ
+  let starCount = parseInt(localStorage.getItem('star_count')) || 0;
+  countEl.innerText = starCount;
+
+  // Render lại những ngôi sao cũ (để lọ trông đầy)
+  // Lưu ý: Chỉ render tượng trưng tối đa 50 sao để đỡ lag, nhưng số đếm vẫn đúng
+  const visualLimit = Math.min(starCount, 100);
+  for(let i=0; i<visualLimit; i++) {
+    createStaticStar();
+  }
+
+  function createStaticStar() {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.innerHTML = '★'; // Hình ngôi sao
+    star.style.animation = 'none'; // Không chạy hiệu ứng rơi nữa
+
+    // Vị trí ngẫu nhiên trong lọ
+    const randomLeft = Math.random() * 160 + 10;
+    const randomTop = 270 - (Math.random() * (Math.min(starCount, 300) * 0.8)); // Càng nhiều sao càng cao lên
+
+    star.style.left = randomLeft + 'px';
+    star.style.top = randomTop + 'px';
+    star.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+    jar.appendChild(star);
+  }
+
+  function addStar() {
+    const wish = wishInput.value.trim();
+    if (!wish) {
+      alert("Em chưa viết điều ước kìa! 🥺");
+      return;
+    }
+
+    // 1. Mở nắp lọ
+    jar.classList.add('open');
+
+    // 2. Tạo ngôi sao rơi
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.innerHTML = '★';
+
+    // Vị trí rơi ngẫu nhiên chiều ngang
+    const randomLeft = Math.random() * 140 + 20;
+    star.style.left = randomLeft + 'px';
+
+    // Tính toán độ cao sẽ rơi xuống (chồng lên nhau)
+    // Lọ cao 300px. Càng nhiều sao thì điểm rơi càng cao (số top càng nhỏ)
+    let pileHeight = Math.min(starCount * 0.8, 250);
+    let targetTop = 270 - pileHeight + (Math.random() * 20 - 10); // Random chút cho tự nhiên
+
+    star.style.setProperty('--target-top', targetTop + 'px');
+
+    jar.appendChild(star);
+
+    // 3. Cập nhật dữ liệu
+    starCount++;
+    localStorage.setItem('star_count', starCount);
+    countEl.innerText = starCount;
+
+    // 4. Gửi về Discord
+    fetch(`/api/fold-star?wish=${encodeURIComponent(wish)}&count=${starCount}`, {
+      method: 'POST'
+    }).then(() => {
+      wishInput.value = ''; // Xóa ô nhập
+    });
+
+    // 5. Đóng nắp lọ sau khi rơi xong (1s)
+    setTimeout(() => {
+      jar.classList.remove('open');
+    }, 1000);
+  }
+</script>
+</body>
+</html>

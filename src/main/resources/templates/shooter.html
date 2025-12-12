@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Đại Chiến Tình Yêu (Fixed) 🔫</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background-color: #2c3e50; overflow: hidden; font-family: 'Bungee', cursive; touch-action: none; }
+        #lobby { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
+        .btn-select { padding: 20px 40px; margin: 20px; font-size: 1.5rem; border: 4px solid white; cursor: pointer; font-family: inherit; transition: transform 0.2s; }
+        .btn-select:active { transform: scale(0.95); }
+        .btn-boy { background: #3498db; color: white; }
+        .btn-girl { background: #e91e63; color: white; }
+        canvas { display: block; background: url('https://www.transparenttextures.com/patterns/cubes.png') #34495e; }
+        .hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; }
+        .hp-bar { width: 40%; height: 30px; background: #555; border: 3px solid white; position: relative; }
+        .hp-fill { height: 100%; transition: width 0.2s; }
+        #hp-boy { background: #3498db; width: 100%; }
+        #hp-girl { background: #e91e63; width: 100%; }
+        .controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; }
+        .btn-ctrl { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 50%; color: white; font-size: 30px; display: flex; justify-content: center; align-items: center; user-select: none; }
+        .btn-shoot { background: #e74c3c; border-color: #e74c3c; width: 90px; height: 90px; }
+        .btn-ctrl:active { background: rgba(255,255,255,0.5); }
+        #winScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 200; color: #f1c40f; text-shadow: 0 0 20px orange; font-size: 3rem; }
+    </style>
+</head>
+<body>
+
+<div class="hud">
+    <div style="color:#3498db">ANH ĐỨC <div class="hp-bar"><div id="hp-boy" class="hp-fill"></div></div></div>
+    <div style="text-align:right; color:#e91e63">VỢ YÊU <div class="hp-bar"><div id="hp-girl" class="hp-fill"></div></div></div>
+</div>
+
+<div id="lobby">
+    <h1>ĐẠI CHIẾN TÌNH YÊU 🔫</h1>
+    <button class="btn-select btn-boy" onclick="startGame('BOY')">👦 ANH (PHE XANH)</button>
+    <button class="btn-select btn-girl" onclick="startGame('GIRL')">👧 EM (PHE HỒNG)</button>
+    <a href="/" style="color: #aaa; margin-top: 20px; text-decoration: none;">⬅ Về trang chủ</a>
+</div>
+
+<div id="winScreen">
+    <h1 id="winnerText">WINNER!</h1>
+    <button class="btn-select btn-boy" onclick="resetGame()">CHƠI LẠI</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div class="controls">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="btn-ctrl" ontouchstart="moving=-1" ontouchend="moving=0">⬆️</div>
+        <div class="btn-ctrl" ontouchstart="moving=1" ontouchend="moving=0">⬇️</div>
+    </div>
+    <div class="btn-ctrl btn-shoot" onclick="shoot()">🔥</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let stompClient = null;
+    let myRole = null;
+    let moving = 0;
+    let isGameOver = false;
+
+    const playerSize = 60;
+    const speed = 7;
+    const bulletSpeed = 12;
+
+    let boy = { x: 50, y: canvas.height/2, hp: 100 };
+    let girl = { x: canvas.width - 50 - playerSize, y: canvas.height/2, hp: 100 };
+    let bullets = [];
+
+    function startGame(role) {
+        myRole = role;
+        document.getElementById('lobby').style.display = 'none';
+        connect();
+    }
+
+    function connect() {
+        const socket = new SockJS('/ws-game');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            stompClient.subscribe('/topic/shooter', function (res) {
+                handleNetworkData(JSON.parse(res.body));
+            });
+            requestAnimationFrame(update);
+        });
+    }
+
+    function sendData(action, yVal, bulletY = 0) {
+        if(stompClient && stompClient.connected) {
+            stompClient.send("/app/shooter/action", {}, JSON.stringify({
+                role: myRole, action: action, y: yVal, bulletY: bulletY
+            }));
+        }
+    }
+
+    function resetGame() {
+        sendData('RESET', 0);
+    }
+
+    function handleNetworkData(data) {
+        // Đồng bộ máu từ Server (Đây là nguồn chân lý duy nhất)
+        if (data.hpBoy !== undefined) {
+            boy.hp = data.hpBoy;
+            girl.hp = data.hpGirl;
+            updateHealthUI();
+            checkWin();
+        }
+
+        if (data.action === 'RESET') {
+            isGameOver = false;
+            document.getElementById('winScreen').style.display = 'none';
+            bullets = [];
+        }
+
+        // Đồng bộ vị trí đối thủ
+        if (data.role === 'BOY' && myRole === 'GIRL') {
+            boy.y = data.y;
+            if (data.action === 'SHOOT') spawnBullet(boy.x + playerSize, data.bulletY, 1, 'BOY');
+        }
+        else if (data.role === 'GIRL' && myRole === 'BOY') {
+            girl.y = data.y;
+            if (data.action === 'SHOOT') spawnBullet(girl.x, data.bulletY, -1, 'GIRL');
+        }
+    }
+
+    function spawnBullet(x, y, dir, owner) {
+        bullets.push({ x: x, y: y + playerSize/2, dir: dir, owner: owner });
+    }
+
+    function shoot() {
+        if(isGameOver) return;
+        const me = myRole === 'BOY' ? boy : girl;
+        // Bắn ở máy mình trước cho mượt
+        if (myRole === 'BOY') spawnBullet(boy.x + playerSize, boy.y, 1, 'BOY');
+        else spawnBullet(girl.x, girl.y, -1, 'GIRL');
+
+        // Gửi lệnh lên server để báo máy kia bắn theo
+        sendData('SHOOT', me.y, me.y);
+    }
+
+    function update() {
+        if (isGameOver) {
+            requestAnimationFrame(update); // Vẫn vẽ nhưng không update logic
+            return;
+        }
+
+        // 1. Di chuyển bản thân
+        const me = myRole === 'BOY' ? boy : girl;
+        if (moving !== 0) {
+            me.y += moving * speed;
+            if(me.y < 0) me.y = 0;
+            if(me.y > canvas.height - playerSize) me.y = canvas.height - playerSize;
+            sendData('MOVE', me.y);
+        }
+
+        // 2. Di chuyển đạn & Va chạm
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.x += b.dir * bulletSpeed;
+
+            if (b.x < 0 || b.x > canvas.width) {
+                bullets.splice(i, 1);
+                continue;
+            }
+
+            // QUAN TRỌNG: Chỉ người bắn mới có quyền tính HIT (để đảm bảo công bằng)
+            // Nếu mình bắn trúng đối thủ -> Báo Server
+            if (b.owner === myRole) {
+                let target = (myRole === 'BOY') ? girl : boy;
+                let targetRole = (myRole === 'BOY') ? 'GIRL' : 'BOY';
+
+                if (checkCollision(b, target)) {
+                    bullets.splice(i, 1);
+                    // Gửi tin nhắn: "Đối thủ (TargetRole) bị dính đạn (HIT)"
+                    sendData('HIT', 0, 0);
+                    // Lưu ý: role trong sendData ở đây ta sẽ sửa lại một chút ở logic gửi:
+                    // Thay vì sửa hàm sendData, ta gửi role là đối thủ để server trừ máu đối thủ
+                    // Nhưng để đơn giản, server đang trừ máu dựa trên role gửi lên.
+                    // Sửa lại logic: Gửi role của NGƯỜI BỊ BẮN lên server.
+
+                    stompClient.send("/app/shooter/action", {}, JSON.stringify({
+                        role: targetRole, // Người bị bắn
+                        action: 'HIT',
+                        y: 0, bulletY: 0
+                    }));
+                }
+            }
+        }
+
+        draw();
+        requestAnimationFrame(update);
+    }
+
+    function checkCollision(bullet, player) {
+        return (bullet.x > player.x && bullet.x < player.x + playerSize &&
+            bullet.y > player.y && bullet.y < player.y + playerSize);
+    }
+
+    function checkWin() {
+        if (boy.hp <= 0 || girl.hp <= 0) {
+            isGameOver = true;
+            const winner = boy.hp > 0 ? "ANH ĐỨC THẮNG!" : "VỢ YÊU THẮNG!";
+            document.getElementById('winnerText').innerText = winner;
+            document.getElementById('winScreen').style.display = 'flex';
+        }
+    }
+
+    function updateHealthUI() {
+        document.getElementById('hp-boy').style.width = boy.hp + '%';
+        document.getElementById('hp-girl').style.width = girl.hp + '%';
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "50px Arial";
+        ctx.fillText("👦", boy.x, boy.y + 50);
+        ctx.fillText("👧", girl.x, girl.y + 50);
+
+        bullets.forEach(b => {
+            ctx.font = "30px Arial";
+            ctx.fillText(b.owner === 'BOY' ? "💙" : "💘", b.x, b.y);
+        });
+    }
+
+    // PC Controls
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'ArrowUp' || e.key === 'w') moving = -1;
+        if(e.key === 'ArrowDown' || e.key === 's') moving = 1;
+        if(e.key === ' ') shoot();
+    });
+    document.addEventListener('keyup', (e) => {
+        if(['ArrowUp','ArrowDown','w','s'].includes(e.key)) moving = 0;
+    });
+
+</script>
+</body>
+</html>

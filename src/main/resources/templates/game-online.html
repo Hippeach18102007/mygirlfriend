@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caro Tình Yêu Online ❤️💙</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffeaa7;
+            font-family: 'Fredoka One', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h1 { color: #d63031; margin-bottom: 10px; }
+
+        .role-selection {
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-role {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-family: inherit;
+        }
+        .btn-x { background: #ff7675; color: white; } /* Anh */
+        .btn-o { background: #74b9ff; color: white; } /* Em */
+        .selected { border: 4px solid #2d3436; transform: scale(1.1); }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            background: #dfe6e9;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 10px;
+            font-size: 3.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .cell:active { transform: scale(0.95); }
+
+        .x-move { color: #ff7675; }
+        .o-move { color: #74b9ff; }
+
+        .status { margin-top: 20px; font-size: 1.5rem; color: #636e72; }
+
+        #btn-restart {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: #00b894;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: #d63031; font-weight: bold;">⬅ Trang chủ</a>
+
+<h1>Caro Tình Yêu Online</h1>
+
+<div class="role-selection" id="role-select">
+    <p>Chọn phe của bạn:</p>
+    <button class="btn-role btn-x" onclick="selectRole('X')">❤️ Anh Đức</button>
+    <button class="btn-role btn-o" onclick="selectRole('O')">💙 Vợ Yêu</button>
+</div>
+
+<div class="board">
+    <div class="cell" id="cell-0" onclick="move(0)"></div>
+    <div class="cell" id="cell-1" onclick="move(1)"></div>
+    <div class="cell" id="cell-2" onclick="move(2)"></div>
+    <div class="cell" id="cell-3" onclick="move(3)"></div>
+    <div class="cell" id="cell-4" onclick="move(4)"></div>
+    <div class="cell" id="cell-5" onclick="move(5)"></div>
+    <div class="cell" id="cell-6" onclick="move(6)"></div>
+    <div class="cell" id="cell-7" onclick="move(7)"></div>
+    <div class="cell" id="cell-8" onclick="move(8)"></div>
+</div>
+
+<div class="status" id="status">Đang chờ kết nối...</div>
+<button id="btn-restart" onclick="resetGame()">Chơi Ván Mới</button>
+
+<script>
+    let stompClient = null;
+    let myRole = null; // 'X' hoặc 'O'
+    let currentTurn = 'X'; // Mặc định X đi trước
+
+    function connect() {
+        const socket = new SockJS('/ws-game');
+        stompClient = Stomp.over(socket);
+
+        // Tắt log debug cho gọn
+        stompClient.debug = null;
+
+        stompClient.connect({}, function (frame) {
+            document.getElementById('status').innerText = "Đã kết nối! Hãy chọn phe.";
+
+            // Đăng ký nhận tin nhắn từ server
+            stompClient.subscribe('/topic/game', function (response) {
+                showMove(JSON.parse(response.body));
+            });
+        });
+    }
+
+    function selectRole(role) {
+        myRole = role;
+        document.getElementById('role-select').style.display = 'none';
+        document.getElementById('status').innerText = "Bạn là " + (role === 'X' ? "❤️" : "💙") + ". Đến lượt: ❤️";
+    }
+
+    function move(index) {
+        if (!myRole) {
+            alert("Bạn chưa chọn phe!");
+            return;
+        }
+        if (myRole !== currentTurn) {
+            alert("Chưa đến lượt của bạn!");
+            return;
+        }
+
+        // Gửi nước đi lên server
+        stompClient.send("/app/move", {}, JSON.stringify({
+            'type': 'MOVE',
+            'index': index,
+            'player': myRole
+        }));
+    }
+
+    function showMove(message) {
+        if (message.type === 'RESET') {
+            // Xóa bàn cờ
+            for(let i=0; i<9; i++) {
+                let cell = document.getElementById('cell-' + i);
+                cell.innerText = '';
+                cell.classList.remove('x-move', 'o-move');
+            }
+            currentTurn = 'X';
+            document.getElementById('status').innerText = "Ván mới! Đến lượt: ❤️";
+            document.getElementById('btn-restart').style.display = 'none';
+            return;
+        }
+
+        if (message.type === 'WIN') {
+            document.getElementById('status').innerText = (message.player === 'X' ? "ANH ĐỨC ❤️" : "VỢ YÊU 💙") + " THẮNG!";
+            document.getElementById('btn-restart').style.display = 'block';
+            // Hiện nước cuối
+            renderCell(message.index, message.player);
+            return;
+        }
+
+        // Render nước đi
+        renderCell(message.index, message.player);
+
+        // Đổi lượt
+        currentTurn = message.player === 'X' ? 'O' : 'X';
+        document.getElementById('status').innerText = "Đến lượt: " + (currentTurn === 'X' ? "❤️" : "💙");
+    }
+
+    function renderCell(index, player) {
+        let cell = document.getElementById('cell-' + index);
+        cell.innerText = player === 'X' ? '❤️' : '💙';
+        cell.classList.add(player === 'X' ? 'x-move' : 'o-move');
+    }
+
+    function resetGame() {
+        stompClient.send("/app/move", {}, JSON.stringify({
+            'type': 'RESET',
+            'index': -1,
+            'player': ''
+        }));
+    }
+
+    // Tự động kết nối khi vào trang
+    connect();
+</script>
+</body>
+</html>

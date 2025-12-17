@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gacha Tình Yêu 🎰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ff9ff3;
+            background-image: radial-gradient(#f368e0 15%, transparent 16%), radial-gradient(#f368e0 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: white; text-shadow: 3px 3px 0 #8854d0; font-size: 2.5rem; margin-bottom: 10px; text-align: center;}
+
+        /* Máy Gacha */
+        .machine-container {
+            position: relative;
+            width: 300px;
+            height: 450px;
+        }
+
+        .dome {
+            width: 260px; height: 260px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 8px solid #fff;
+            border-radius: 50%;
+            position: absolute; left: 20px; top: 0;
+            z-index: 2;
+            overflow: hidden;
+            box-shadow: inset -10px -10px 30px rgba(0,0,0,0.1);
+        }
+
+        .ball {
+            width: 50px; height: 50px; border-radius: 50%;
+            position: absolute; border: 3px solid rgba(0,0,0,0.1);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+        }
+
+        .base {
+            width: 300px; height: 220px;
+            background: #ff5252;
+            border-radius: 20px 20px 40px 40px;
+            position: absolute; bottom: 0;
+            box-shadow: 0 10px 0 #b33939;
+            z-index: 1;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .knob {
+            width: 60px; height: 60px;
+            background: #feca57; border-radius: 50%;
+            border: 5px solid #ff9f43;
+            margin-top: 40px;
+            cursor: pointer;
+            transition: transform 0.5s;
+            box-shadow: 0 5px 0 #e67e22;
+        }
+
+        .knob:active { transform: rotate(180deg) scale(0.95); }
+        .knob.spinning { animation: spin 1s ease-out; pointer-events: none; }
+
+        .outlet {
+            width: 80px; height: 80px;
+            background: #2d3436;
+            border-radius: 10px 10px 40px 40px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Nút quay */
+        .btn-play {
+            margin-top: 40px;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: #48dbfb; color: white;
+            border: none; border-radius: 50px;
+            font-family: 'Fredoka One';
+            cursor: pointer;
+            box-shadow: 0 6px 0 #0abde3;
+            transition: all 0.2s;
+        }
+        .btn-play:active { transform: translateY(4px); box-shadow: 0 2px 0 #0abde3; }
+        .btn-play:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* Popup kết quả */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 20px;
+            text-align: center; max-width: 80%;
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .reward-text { font-size: 1.5rem; font-weight: bold; color: #d63031; margin: 20px 0; }
+        .close-btn { background: #ff5252; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .shaking { animation: shake 0.5s infinite; }
+    </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: white; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 10px;">⬅ Trang chủ</a>
+
+<h1>VÒNG QUAY NHÂN PHẨM 🎲</h1>
+<p style="color: white; font-weight: bold;">Hôm nay bắt nạt anh thế nào đây?</p>
+
+<div class="machine-container" id="machine">
+    <div class="dome" id="dome">
+    </div>
+    <div class="base">
+        <div class="knob" id="knob" onclick="play()"></div>
+        <div class="outlet"></div>
+    </div>
+</div>
+
+<button class="btn-play" id="btnPlay" onclick="play()">QUAY NGAY</button>
+
+<div class="modal" id="resultModal">
+    <div class="modal-content">
+        <h2>🎉 CHÚC MỪNG 🎉</h2>
+        <p>Em đã quay trúng:</p>
+        <div class="reward-text" id="rewardDisplay">...</div>
+        <p style="font-size: 0.9rem; color: #636e72;">(Đã gửi thông báo đòi nợ cho anh Đức)</p>
+        <button class="close-btn" onclick="closeModal()">Nhận quà</button>
+    </div>
+</div>
+
+<script>
+    // Thêm nhiều màu pastel xinh xắn hơn
+    const colors = [
+        '#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1',
+        '#a29bfe', '#fab1a0', '#ffeaa7', '#81ecec', '#fd79a8'
+    ];
+    const dome = document.getElementById('dome');
+
+    function initBalls() {
+        // TĂNG SỐ LƯỢNG BÓNG LÊN 50 QUẢ CHO ĐẦY MÁY
+        for(let i=0; i<50; i++) {
+            let ball = document.createElement('div');
+            ball.className = 'ball';
+
+            // Random màu
+            ball.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+            // Random vị trí lung tung trong lồng cầu
+            ball.style.left = Math.random() * 210 + 'px'; // 0 - 210px
+            ball.style.top = Math.random() * 200 + 10 + 'px'; // Để bóng dồn xuống dưới 1 chút
+
+            // Random kích thước bóng 1 chút cho tự nhiên (40px - 50px)
+            let size = Math.random() * 10 + 40;
+            ball.style.width = size + 'px';
+            ball.style.height = size + 'px';
+
+            dome.appendChild(ball);
+        }
+    }
+    initBalls();
+
+    let isSpinning = false;
+
+    function play() {
+        if(isSpinning) return;
+        isSpinning = true;
+
+        const knob = document.getElementById('knob');
+        const machine = document.getElementById('machine');
+        const btn = document.getElementById('btnPlay');
+
+        knob.classList.add('spinning');
+        machine.classList.add('shaking');
+        btn.disabled = true;
+        btn.innerText = "ĐANG QUAY...";
+        btn.style.background = "#bdc3c7";
+
+        // Gọi API
+        fetch('/api/gacha-pull', { method: 'POST' })
+            .then(res => res.text())
+            .then(reward => {
+                setTimeout(() => {
+                    knob.classList.remove('spinning');
+                    machine.classList.remove('shaking');
+                    showResult(reward);
+
+                    isSpinning = false;
+                    btn.disabled = false;
+                    btn.innerText = "QUAY TIẾP (SỢ GÌ)";
+                    btn.style.background = "#48dbfb";
+                }, 2000); // Quay lâu hơn chút (2s) cho hồi hộp
+            })
+            .catch(err => {
+                alert("Lỗi mạng rồi :( Thử lại đi");
+                isSpinning = false;
+                btn.disabled = false;
+                btn.innerText = "QUAY NGAY";
+                btn.style.background = "#48dbfb";
+            });
+    }
+
+    function showResult(reward) {
+        document.getElementById('rewardDisplay').innerText = reward;
+        document.getElementById('resultModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+        // Xáo trộn bóng lại mỗi khi quay xong cho sinh động
+        dome.innerHTML = '';
+        initBalls();
+    }
+</script>
+
+</body>
+</html>

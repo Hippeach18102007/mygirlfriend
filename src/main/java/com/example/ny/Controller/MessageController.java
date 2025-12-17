@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @Controller
 public class MessageController {
@@ -24,7 +25,7 @@ public class MessageController {
     // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Nay đi ngooài đường mệt rồi. Đi nghỉ ngơi đi nha emmmm\uD83E\uDEF6\n";
+    private final String loiNhan = "Anh yêu em. Có gì giận hay buồn thì nhắn cho anh nhé \uD83E\uDEF6\n";
     private final String myEmail = "ducdath04243@fpt.edu.vn";
 
     // 🔥 MẬT KHẨU ĐỂ VÀO TRANG (Bạn sửa ở đây nhé)
@@ -373,6 +374,28 @@ public class MessageController {
         return "kitchen";
     }
 
+    // --- PHẦN 2: XỬ LÝ GỬI ĐỒ ĂN (POST) ---
+    // Cái này giúp nút bấm hoạt động, sửa lỗi 404
+    @PostMapping("/api/cook-bento")
+    @ResponseBody // Bắt buộc có dòng này để trả về chữ, không phải trả về file HTML
+    public ResponseEntity<String> cookBento(
+            @RequestParam String dishList,
+            @RequestParam String message
+    ) {
+        // Soạn tin nhắn gửi Discord
+        StringBuilder sb = new StringBuilder();
+        sb.append("🍱 **TING TING! CƠM VỢ NẤU ĐẾN RỒI!** 🍱\n");
+        sb.append("------------------------------------------\n");
+        sb.append("👩‍🍳 **Thực đơn:** ").append(dishList).append("\n");
+        sb.append("💌 **Lời nhắn:** \"").append(message).append("\"\n");
+        sb.append("------------------------------------------\n");
+        sb.append("❤️ Chúc chồng yêu ăn ngon miệng!");
+
+        discordService.sendNotification(sb.toString());
+
+        return ResponseEntity.ok("Đã gửi thành công!");
+    }
+
     @GetMapping("/cinema")
     public String showCinemaPage() {
         return "cinema"; // Trả về file cinema.html
@@ -641,4 +664,69 @@ public class MessageController {
             return response;
         }
     }
+    private final String[] REWARDS = {
+            // --- Hạng S: Quà xịn (Tỷ lệ thấp) ---
+            "💰 Ting ting 100k (Lộc rơi trúng đầu!)",
+            "💄 1 Thỏi son (Em chọn, anh trả tiền - Giới hạn 300k)",
+            "👗 1 Cái váy mới (Anh dẫn đi mua)",
+            "👑 Phiếu 'Nữ Hoàng' (Anh làm hết việc nhà 1 ngày)",
+
+            // --- Hạng A: Ăn uống & Chơi bời ---
+            "🧋 1 Ly Trà Sữa Full Topping (Size L)",
+            "🍗 1 Chầu Gà Rán (Anh mời)",
+            "🍕 1 Cái Pizza (Anh trả tiền)",
+            "🎬 1 Vé xem phim (Em chọn phim)",
+            "🍢 1 Chầu Xiên bẩn / Nem chua rán",
+            "🍦 1 Cây kem ốc quế",
+
+            // --- Hạng B: Sai vặt & Phục vụ ---
+            "💆‍♀️ Massage cổ vai gáy 30 phút",
+            "💆‍♂️ Gội đầu cho vợ",
+            "🦶 Bóp chân cho vợ 15 phút",
+            "💇‍♂️ Sấy tóc cho vợ",
+            "🥣 Rửa bát hôm nay (Không được kêu ca)",
+            "🧹 Quét nhà + Lau nhà",
+            "👕 Gấp quần áo cho vợ",
+            "🏍️ Làm tài xế riêng chở đi lượn phố 1 tiếng",
+
+            // --- Hạng C: Quyền lực ---
+            "🤫 Phiếu 'Anh Im Lặng' (Anh không được cãi 1 lần)",
+            "📱 Được kiểm tra điện thoại anh 5 phút",
+            "📷 Anh phải để Avatar đôi theo ý em 3 ngày",
+            "🎤 Anh phải hát 1 bài tặng em",
+            "🥺 Phiếu 'Tha Thứ' (Xóa 1 lỗi lầm cũ của anh)",
+
+            // --- Hạng D: Troll & An ủi (Cho vui) ---
+            "💧 1 Cốc nước lọc (Tốt cho sức khỏe)",
+            "🤝 1 Cái bắt tay nồng ấm",
+            "😘 1 Cái thơm vào má",
+            "🤡 Chúc bạn may mắn lần sau!",
+            "👀 Anh sẽ nhìn em đắm đuối 1 phút",
+            "💪 Anh hít đất 20 cái cho em xem"
+    };
+
+    @GetMapping("/gacha")
+    public String showGachaPage() {
+        return "gacha";
+    }
+
+    @PostMapping("/api/gacha-pull")
+    @ResponseBody
+    public ResponseEntity<String> pullGacha() {
+        Random rand = new Random();
+        String reward = REWARDS[rand.nextInt(REWARDS.length)];
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("🎰 **KẾT QUẢ QUAY SỐ NHÂN PHẨM** 🎰\n");
+        sb.append("------------------------------------------\n");
+        sb.append("Chúc mừng **Vợ Yêu** đã quay vào ô:\n\n");
+        sb.append("# 🎉 ").append(reward).append(" 🎉\n\n");
+        sb.append("------------------------------------------\n");
+        sb.append("⚠️ _Anh Đức nhớ thực hiện ngay nhé!_");
+
+        discordService.sendNotification(sb.toString());
+
+        return ResponseEntity.ok(reward);
+    }
+
 }

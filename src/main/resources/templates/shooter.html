@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Đại Chiến Tình Yêu (Fixed) 🔫</title>
+    <title>Đại Chiến Tình Yêu (Fixed V2) 🔫</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
@@ -106,7 +106,7 @@
     }
 
     function handleNetworkData(data) {
-        // Đồng bộ máu từ Server (Đây là nguồn chân lý duy nhất)
+        // Đồng bộ máu từ Server
         if (data.hpBoy !== undefined) {
             boy.hp = data.hpBoy;
             girl.hp = data.hpGirl;
@@ -118,9 +118,12 @@
             isGameOver = false;
             document.getElementById('winScreen').style.display = 'none';
             bullets = [];
+            boy.hp = 100;
+            girl.hp = 100;
+            updateHealthUI();
         }
 
-        // Đồng bộ vị trí đối thủ
+        // Đồng bộ vị trí đối thủ và đạn
         if (data.role === 'BOY' && myRole === 'GIRL') {
             boy.y = data.y;
             if (data.action === 'SHOOT') spawnBullet(boy.x + playerSize, data.bulletY, 1, 'BOY');
@@ -142,13 +145,13 @@
         if (myRole === 'BOY') spawnBullet(boy.x + playerSize, boy.y, 1, 'BOY');
         else spawnBullet(girl.x, girl.y, -1, 'GIRL');
 
-        // Gửi lệnh lên server để báo máy kia bắn theo
+        // Gửi lệnh lên server
         sendData('SHOOT', me.y, me.y);
     }
 
     function update() {
         if (isGameOver) {
-            requestAnimationFrame(update); // Vẫn vẽ nhưng không update logic
+            requestAnimationFrame(update);
             return;
         }
 
@@ -171,23 +174,18 @@
                 continue;
             }
 
-            // QUAN TRỌNG: Chỉ người bắn mới có quyền tính HIT (để đảm bảo công bằng)
-            // Nếu mình bắn trúng đối thủ -> Báo Server
+            // --- ĐÃ SỬA LỖI TẠI ĐÂY ---
+            // Chỉ người bắn mới tính va chạm
             if (b.owner === myRole) {
                 let target = (myRole === 'BOY') ? girl : boy;
                 let targetRole = (myRole === 'BOY') ? 'GIRL' : 'BOY';
 
                 if (checkCollision(b, target)) {
                     bullets.splice(i, 1);
-                    // Gửi tin nhắn: "Đối thủ (TargetRole) bị dính đạn (HIT)"
-                    sendData('HIT', 0, 0);
-                    // Lưu ý: role trong sendData ở đây ta sẽ sửa lại một chút ở logic gửi:
-                    // Thay vì sửa hàm sendData, ta gửi role là đối thủ để server trừ máu đối thủ
-                    // Nhưng để đơn giản, server đang trừ máu dựa trên role gửi lên.
-                    // Sửa lại logic: Gửi role của NGƯỜI BỊ BẮN lên server.
 
+                    // GỬI LỆNH TRỪ MÁU ĐỐI THỦ (Chỉ gửi 1 lần đúng Role đối thủ)
                     stompClient.send("/app/shooter/action", {}, JSON.stringify({
-                        role: targetRole, // Người bị bắn
+                        role: targetRole, // Gửi role người BỊ BẮN (GIRL nếu mình là BOY)
                         action: 'HIT',
                         y: 0, bulletY: 0
                     }));
@@ -205,9 +203,16 @@
     }
 
     function checkWin() {
+        if (isGameOver) return; // Nếu đã game over thì không check nữa
+
         if (boy.hp <= 0 || girl.hp <= 0) {
             isGameOver = true;
-            const winner = boy.hp > 0 ? "ANH ĐỨC THẮNG!" : "VỢ YÊU THẮNG!";
+            // Xác định người thắng dựa trên ai còn máu
+            let winner = "";
+            if (boy.hp <= 0 && girl.hp <= 0) winner = "HÒA NHAU!"; // Rất hiếm khi xảy ra
+            else if (boy.hp <= 0) winner = "VỢ YÊU THẮNG! 💖";
+            else winner = "ANH ĐỨC THẮNG! 🏆";
+
             document.getElementById('winnerText').innerText = winner;
             document.getElementById('winScreen').style.display = 'flex';
         }
@@ -220,10 +225,15 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Vẽ Boy
         ctx.font = "50px Arial";
         ctx.fillText("👦", boy.x, boy.y + 50);
+
+        // Vẽ Girl
         ctx.fillText("👧", girl.x, girl.y + 50);
 
+        // Vẽ đạn
         bullets.forEach(b => {
             ctx.font = "30px Arial";
             ctx.fillText(b.owner === 'BOY' ? "💙" : "💘", b.x, b.y);

@@ -7,16 +7,11 @@ import java.util.*;
 
 @Service
 public class GeminiService {
-
-    // Thay API KEY của bạn vào đây
     private final String API_KEY = "DÁN_MÃ_API_CỦA_BẠN_VÀO_ĐÂY";
     private final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
 
     public String chatWithGemini(String userMessage) {
         RestTemplate restTemplate = new RestTemplate();
-
-        // 1. Cài đặt tính cách cho AI (Prompt Engineering)
-        // Đây là phần quan trọng nhất để AI thông minh và thú vị
         String systemInstruction = "Bạn là trợ lý tình yêu ảo của một cặp đôi tên là Đức và Vợ. " +
                 "Hãy trả lời một cách cute, hài hước, và hơi sến súa một chút. " +
                 "Luôn gọi người dùng là 'Chị đẹp' hoặc 'Cô chủ nhỏ'. " +

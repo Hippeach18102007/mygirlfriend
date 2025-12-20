@@ -15,9 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Controller
 public class MessageController {
@@ -25,7 +24,7 @@ public class MessageController {
     // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-    private final String loiNhan = "Anh yêu em. Có gì giận hay buồn thì nhắn cho anh nhé \uD83E\uDEF6\n";
+        private final String loiNhan = "Nhớ uống nhiều nước ấm nhé. Đau bụng thì chườm đi nha em\uD83E\uDEF6\n";
     private final String myEmail = "ducdath04243@fpt.edu.vn";
 
     // 🔥 MẬT KHẨU ĐỂ VÀO TRANG (Bạn sửa ở đây nhé)
@@ -728,5 +727,43 @@ public class MessageController {
 
         return ResponseEntity.ok(reward);
     }
+    @GetMapping("/cycle")
+    public String showCalendarPage() {
+        return "cycle"; // Trả về file calendar.html
+    }
 
+    // Class chứa dữ liệu thô để JS xử lý
+    public static class CycleEvent {
+        public String startDate;      // Ngày bắt đầu dâu (yyyy-MM-dd)
+        public String ovulationDate;  // Ngày rụng trứng (yyyy-MM-dd)
+
+        public CycleEvent(String startDate, String ovulationDate) {
+            this.startDate = startDate;
+            this.ovulationDate = ovulationDate;
+        }
+    }
+
+    @GetMapping("/api/cycle-data")
+    @ResponseBody
+    public ResponseEntity<List<CycleEvent>> getCycleData(
+            @RequestParam String startDate // Nhập: 2025-12-20
+    ) {
+        List<CycleEvent> events = new ArrayList<>();
+        LocalDate currentPeriod = LocalDate.parse(startDate);
+
+        // Tính toán cho 15 chu kỳ tới (dư ra một chút để phủ kín năm)
+        for (int i = 0; i < 15; i++) {
+            LocalDate ovulation = currentPeriod.plusDays(14); // Rụng trứng (giả định)
+
+            events.add(new CycleEvent(
+                    currentPeriod.toString(),
+                    ovulation.toString()
+            ));
+
+            // Chu kỳ tiếp theo (+28 ngày)
+            currentPeriod = currentPeriod.plusDays(28);
+        }
+
+        return ResponseEntity.ok(events);
+    }
 }

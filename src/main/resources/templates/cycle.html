@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Theo Dõi Chu Kỳ 📅</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fce4ec; /* Nền hồng phấn */
+            font-family: 'Nunito', sans-serif;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        h1 { color: #c2185b; margin-bottom: 10px; }
+
+        /* Phần điều khiển */
+        .controls {
+            background: white; padding: 15px 30px; border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 30px;
+            display: flex; gap: 10px; align-items: center;
+        }
+        input[type="date"] { padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit;}
+        button {
+            background: #e91e63; color: white; border: none; padding: 8px 20px;
+            border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        button:hover { background: #c2185b; }
+
+        /* Chú thích */
+        .legend { display: flex; gap: 20px; margin-bottom: 20px; font-size: 0.9rem; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 15px; height: 15px; border-radius: 50%; }
+        .dot.period { background: #ff4081; box-shadow: 0 0 5px #ff4081; }
+        .dot.ovulation { background: #ffeb3b; border: 1px solid #fbc02d; }
+
+        /* Khung lưới chứa 12 tháng */
+        .year-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Tự động xuống dòng */
+            gap: 20px;
+            width: 100%; max-width: 1200px;
+        }
+
+        /* Thẻ từng tháng */
+        .month-card {
+            background: white; border-radius: 15px; padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-top: 5px solid #e91e63; /* Điểm nhấn màu hồng */
+        }
+        .month-title {
+            text-align: center; font-weight: bold; color: #444;
+            margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* Lưới ngày trong tháng (7 cột) */
+        .days-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            text-align: center; gap: 2px;
+        }
+        .day-name { font-size: 0.8rem; color: #888; font-weight: bold; margin-bottom: 5px; }
+
+        .day {
+            aspect-ratio: 1; /* Hình vuông */
+            display: flex; justify-content: center; align-items: center;
+            font-size: 0.9rem; border-radius: 50%;
+            cursor: default; position: relative;
+        }
+
+        .day:hover { background-color: #f5f5f5; }
+
+        /* -- MÀU SẮC ĐÁNH DẤU -- */
+        .day.is-period {
+            background-color: #ff80ab; color: white; font-weight: bold;
+        }
+        .day.is-period::after { content: '🩸'; font-size: 0.6rem; position: absolute; bottom: 2px; }
+
+        .day.is-ovulation {
+            background-color: #fff9c4; border: 2px solid #fbc02d; color: #f57f17; font-weight: bold;
+        }
+        .day.is-ovulation::after { content: '🥚'; font-size: 0.6rem; position: absolute; bottom: 2px; }
+
+        .day.today { border: 2px solid #2196f3; color: #2196f3; font-weight: bold; }
+        .day.empty { pointer-events: none; } /* Ô trống đầu tháng */
+
+    </style>
+</head>
+<body>
+
+<a href="/" style="position: absolute; top: 20px; left: 20px; text-decoration: none; color: #c2185b; font-weight: bold;">⬅ Trang chủ</a>
+
+<h1>Lịch Sức Khỏe Cho Nàng 🌸</h1>
+
+<div class="controls">
+    <label>Ngày bắt đầu kỳ kinh gần nhất:</label>
+    <input type="date" id="startDate" value="2025-12-20">
+    <button onclick="renderFullYear()">📅 Tạo Lịch Ngay</button>
+</div>
+
+<div class="legend">
+    <div class="legend-item"><div class="dot period"></div> Ngày đèn đỏ (Dự kiến)</div>
+    <div class="legend-item"><div class="dot ovulation"></div> Ngày rụng trứng (Thụ thai cao)</div>
+</div>
+
+<div class="year-grid" id="calendarContainer">
+</div>
+
+<script>
+    const weekDays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+    // Hàm tiện ích: Cộng ngày
+    function addDays(dateStr, days) {
+        const result = new Date(dateStr);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    // Hàm tiện ích: Format date thành chuỗi yyyy-mm-dd để so sánh
+    function formatDateISO(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    // Hàm chính: Gọi API và vẽ lịch
+    async function renderFullYear() {
+        const startInput = document.getElementById('startDate').value;
+        if (!startInput) return alert("Chọn ngày đi anh ơi!");
+
+        // 1. Lấy dữ liệu chu kỳ từ Server
+        const response = await fetch(`/api/cycle-data?startDate=${startInput}`);
+        const cycleEvents = await response.json();
+
+        // 2. Chuyển đổi dữ liệu API thành danh sách các ngày cần tô màu
+        // Map: '2025-12-20' -> 'period'
+        const specialDays = {};
+
+        cycleEvents.forEach(evt => {
+            const start = new Date(evt.startDate);
+            // Đánh dấu 5 ngày đèn đỏ
+            for (let i = 0; i < 5; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                specialDays[formatDateISO(d)] = 'period';
+            }
+            // Đánh dấu ngày rụng trứng
+            specialDays[evt.ovulationDate] = 'ovulation';
+        });
+
+        // 3. Vẽ lịch 12 tháng (Bắt đầu từ tháng người dùng chọn)
+        const container = document.getElementById('calendarContainer');
+        container.innerHTML = ''; // Xóa cũ
+
+        const startDate = new Date(startInput);
+        let currentMonth = startDate.getMonth(); // 0 - 11
+        let currentYear = startDate.getFullYear();
+
+        // Vòng lặp 12 tháng
+        for (let i = 0; i < 12; i++) {
+            const monthDiv = createMonthHTML(currentYear, currentMonth, specialDays);
+            container.appendChild(monthDiv);
+
+            // Tăng tháng
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+        }
+    }
+
+    function createMonthHTML(year, month, specialDays) {
+        const card = document.createElement('div');
+        card.className = 'month-card';
+
+        // Tiêu đề tháng
+        const monthName = `Tháng ${month + 1} / ${year}`;
+        const header = document.createElement('div');
+        header.className = 'month-title';
+        header.innerText = monthName;
+        card.appendChild(header);
+
+        // Lưới ngày
+        const grid = document.createElement('div');
+        grid.className = 'days-grid';
+
+        // 1. Vẽ tiêu đề thứ (T2, T3...)
+        weekDays.forEach(day => {
+            const d = document.createElement('div');
+            d.className = 'day-name';
+            d.innerText = day;
+            grid.appendChild(d);
+        });
+
+        // 2. Tính toán ngày
+        const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 (CN) -> 6 (T7)
+        const daysInMonth = new Date(year, month + 1, 0).getDate(); // Lấy số ngày của tháng
+
+        // 3. Vẽ các ô trống đầu tháng (nếu mùng 1 không phải chủ nhật)
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'day empty';
+            grid.appendChild(empty);
+        }
+
+        // 4. Vẽ các ngày (1 -> 30/31)
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'day';
+            dayCell.innerText = d;
+
+            // Tạo string 'yyyy-mm-dd' chuẩn để so sánh với danh sách specialDays
+            // Lưu ý: month trong JS bắt đầu từ 0, cần +1. PadStart để thêm số 0 đằng trước (01, 02...)
+            const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+            // Kiểm tra xem ngày này có sự kiện gì không
+            if (specialDays[dateString] === 'period') {
+                dayCell.classList.add('is-period');
+                dayCell.title = "Ngày dâu";
+            } else if (specialDays[dateString] === 'ovulation') {
+                dayCell.classList.add('is-ovulation');
+                dayCell.title = "Rụng trứng";
+            }
+
+            // Highlight ngày hôm nay
+            const today = new Date();
+            if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayCell.classList.add('today');
+            }
+
+            grid.appendChild(dayCell);
+        }
+
+        card.appendChild(grid);
+        return card;
+    }
+
+    // Tự động chạy khi load trang
+    window.onload = renderFullYear;
+</script>
+
+</body>
+</html>

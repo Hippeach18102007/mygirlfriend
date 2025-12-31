@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -24,7 +25,7 @@ public class MessageController {
     // --- CẤU HÌNH THÔNG TIN CƠ BẢN ---
     private final String tenChi = "Bích Loan";
     private final String tenEm = "Anh Đức ny của chị";
-        private final String loiNhan = "Nhớ uống nhiều nước ấm nhé. Đau bụng thì chườm đi nha em\uD83E\uDEF6\n";
+        private final String loiNhan = "Năm 2025, là 1 năm đầy khó khăn với anh nhất là giai đoạn giữa năm. Lúc đó anh vừa vướng mắc giữa việc học với việc gia đình. Nhưng mà vào gần cuối năm chắc là do đã ăn chè đậu đỏ nên may mắn gặp được em. Mỗi tối về đều có người call với nhắn tin để tâm sự. Từ đó, anh thấy mình may mắn hơn và hạnh phúc. Dân IT nên khô khan trong lời nói. Anh cảm ơn em vì đã yêu anh, thương anh kể cả có những lúc anh sai. Love you 3000! \uD83E\uDEF6\n";
     private final String myEmail = "ducdath04243@fpt.edu.vn";
 
     // 🔥 MẬT KHẨU ĐỂ VÀO TRANG (Bạn sửa ở đây nhé)
@@ -268,7 +269,7 @@ public class MessageController {
 
     @GetMapping("/christmas")
     public String showChristmasPage() {
-        return "christmas";
+        return "lixi";
     }
 
     @PostMapping("/api/open-gift")
@@ -765,5 +766,75 @@ public class MessageController {
         }
 
         return ResponseEntity.ok(events);
+    }
+    @GetMapping("/lixi")
+    public String showLiXiPage() {
+        return "lixi";
+    }
+
+    // ... (Giữ nguyên class Prize và List prizes như cũ) ...
+    static class Prize {
+        String name;
+        int value;
+        double weight;
+
+        public Prize(String name, int value, double weight) {
+            this.name = name;
+            this.value = value;
+            this.weight = weight;
+        }
+    }
+
+    // Ví dụ danh sách giải thưởng (dùng cái mới nhất bạn đã chỉnh)
+    private final List<Prize> prizes = new ArrayList<>(Arrays.asList(
+            new Prize("10.000 VNĐ", 10000, 10.0),
+            new Prize("20.000 VNĐ", 20000, 20.0),
+            new Prize("50.000 VNĐ", 50000, 40.0),
+            new Prize("100.000 VNĐ", 100000, 20.0),
+            new Prize("200.000 VNĐ", 200000, 7.0),
+            new Prize("500.000 VNĐ", 500000, 3.0)
+    ));
+
+    @PostMapping("/api/boc-lixi")
+    @ResponseBody
+    public ResponseEntity<String> getLuckyMoney() {
+        // 1. Logic chọn giải thưởng (Giữ nguyên)
+        double totalWeight = 0.0;
+        for (Prize p : prizes) totalWeight += p.weight;
+
+        double random = new Random().nextDouble() * totalWeight;
+        Prize selectedPrize = null;
+
+        for (Prize p : prizes) {
+            random -= p.weight;
+            if (random <= 0.0) {
+                selectedPrize = p;
+                break;
+            }
+        }
+        if (selectedPrize == null) selectedPrize = prizes.get(0);
+
+        // 2. GỬI THÔNG BÁO VỀ DISCORD NGAY LẬP TỨC
+        // Lấy giờ hiện tại cho uy tín
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"));
+
+        String discordMessage = String.format(
+                "🚨 **CÓ BIẾN CÓ BIẾN!** 🚨\\n" +
+                        "--------------------------\\n" +
+                        "👤 **Người chơi:** Chị Yêu\\n" +
+                        "💰 **Vừa rút được:** **%s**\\n" +
+                        "⏰ **Thời gian:** %s\\n" +
+                        "💸 **Chuẩn bị tiền đi em ơi!** 😭",
+                selectedPrize.name, time
+        );
+
+        // Chạy bất đồng bộ (Thread mới) để chị không bị lag khi chờ Discord phản hồi
+        Prize finalSelectedPrize = selectedPrize; // Biến final để dùng trong lambda
+        new Thread(() -> {
+            discordService.sendNotification(discordMessage);
+        }).start();
+
+        // 3. Trả kết quả về cho giao diện web
+        return ResponseEntity.ok(selectedPrize.name);
     }
 }

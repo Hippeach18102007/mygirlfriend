@@ -1,4 +1,4 @@
-# --- Giai đoạn 1: Build ứng dụng ---
+n# --- Giai đoạn 1: Build ứng dụng ---
 FROM maven:3.9-eclipse-temurin-17 as builder
 WORKDIR /app
 COPY pom.xml .

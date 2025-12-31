@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hái Lộc Đầu Xuân 2026 🧧</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pangolin&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #b71c1c; /* Đỏ đô */
+      background-image: radial-gradient(circle, #d32f2f, #8e0000);
+      min-height: 100vh; margin: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-family: 'Pangolin', cursive; overflow: hidden;
+    }
+
+    /* Hiệu ứng mưa vàng */
+    .coin {
+      position: absolute; top: -50px;
+      font-size: 20px; animation: fall linear infinite; z-index: 1;
+    }
+    @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+    h1 {
+      font-family: 'Dancing Script', cursive; color: #ffd700;
+      font-size: 3.5rem; text-shadow: 2px 2px 0 #000;
+      margin-bottom: 10px; z-index: 10; text-align: center;
+    }
+
+    .subtitle { color: #ffecb3; font-size: 1.2rem; margin-bottom: 30px; z-index: 10; }
+
+    /* Khu vực bao lì xì */
+    .lixi-container {
+      display: flex; gap: 20px; z-index: 10;
+      flex-wrap: wrap; justify-content: center;
+    }
+
+    /* Thiết kế bao lì xì */
+    .red-envelope {
+      width: 100px; height: 160px;
+      background: #e60000;
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      position: relative; cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      transition: all 0.3s;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Họa tiết trên bao */
+    .red-envelope::before {
+      content: '福'; /* Chữ Phúc */
+      font-size: 40px; color: #ffd700;
+      border: 2px solid #ffd700; padding: 10px; border-radius: 50%;
+      background: #b71c1c;
+    }
+
+    /* Nắp bao */
+    .red-envelope::after {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 100%; height: 40px;
+      background: rgba(0,0,0,0.1);
+      border-radius: 0 0 50% 50%;
+    }
+
+    .red-envelope:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 15px #ffd700; }
+    .red-envelope.opened { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+
+    /* Modal Kết quả */
+    .modal {
+      display: none; position: fixed; z-index: 1000;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center; align-items: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: #fffbe6; padding: 30px; border-radius: 20px;
+      text-align: center; border: 5px solid #d32f2f;
+      animation: zoomIn 0.5s; max-width: 90%;
+    }
+
+    @keyframes zoomIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+    .money-text {
+      color: #d32f2f; font-size: 2.5rem; font-weight: bold; margin: 20px 0;
+      text-shadow: 1px 1px 0 #ffd700;
+    }
+
+    .congrats-img { width: 150px; margin-bottom: 10px; }
+
+    button {
+      background: #d32f2f; color: #fff; border: none; padding: 10px 25px;
+      font-size: 1.2rem; border-radius: 50px; cursor: pointer;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Chúc Mừng Năm Mới 2026 🐍</h1>
+<div class="subtitle">Chọn một bao lì xì để thử vận may đầu năm nhé!</div>
+
+<div class="lixi-container">
+  <div class="red-envelope" onclick="openLixi(1)"></div>
+  <div class="red-envelope" onclick="openLixi(2)"></div>
+  <div class="red-envelope" onclick="openLixi(3)"></div>
+  <div class="red-envelope" onclick="openLixi(4)"></div>
+  <div class="red-envelope" onclick="openLixi(5)"></div>
+</div>
+
+<div class="modal" id="resultModal">
+  <div class="modal-content">
+    <h2 style="color: #d32f2f; margin: 0;">🎉 LỘC VỀ LỘC VỀ! 🎉</h2>
+    <img src="https://media.giphy.com/media/l4FGpP4w34wu9nU2Y/giphy.gif" class="congrats-img">
+    <p>Chúc mừng chị đã nhận được lì xì:</p>
+    <div class="money-text" id="prizeValue">...</div>
+    <p style="font-size: 0.9rem; color: #555;">(Chụp màn hình gửi em để nhận tiền nha!)</p>
+    <button onclick="location.reload()">Cảm ơn em iu ❤️</button>
+  </div>
+</div>
+
+<audio id="sound-coin" src="https://www.soundjay.com/misc/sounds/coins-in-hand-2.mp3"></audio>
+
+<script>
+  // 1. Tạo hiệu ứng mưa tiền vàng
+  function createCoin() {
+    const coin = document.createElement('div');
+    coin.innerHTML = Math.random() > 0.5 ? '💰' : '🌸'; // Tiền hoặc Hoa
+    coin.className = 'coin';
+    coin.style.left = Math.random() * 100 + 'vw';
+    coin.style.animationDuration = Math.random() * 3 + 2 + 's';
+    document.body.appendChild(coin);
+    setTimeout(() => coin.remove(), 5000);
+  }
+  setInterval(createCoin, 300);
+
+  // 2. Xử lý mở Lì Xì
+  const MAX_TURNS = 3;
+
+  async function openLixi(id) {
+    // 1. Lấy số lần đã rút từ bộ nhớ (nếu chưa có thì là 0)
+    let count = parseInt(localStorage.getItem('count_lixi_2026') || 0);
+
+    // 2. Kiểm tra xem còn lượt không
+    if (count >= MAX_TURNS) {
+      alert(`Tham quá nha! Chị đã rút hết ${MAX_TURNS} lần rồi! Chốt đơn đi nào 😘`);
+      return;
+    }
+
+    // 3. Hỏi xác nhận (Hiển thị số lượt còn lại)
+    let remaining = MAX_TURNS - count;
+    if(!confirm(`Chị chọn bao này đúng không? (Còn ${remaining} lượt rút)`)) return;
+
+    try {
+      const response = await fetch('/api/boc-lixi', { method: 'POST' });
+      if (response.ok) {
+        const money = await response.text();
+
+        document.getElementById('sound-coin').play();
+        document.getElementById('prizeValue').innerText = money;
+        document.getElementById('resultModal').style.display = 'flex';
+
+        // Đánh dấu bao này đã mở (mờ đi)
+        document.querySelectorAll('.red-envelope')[id-1].classList.add('opened');
+
+        // 4. Tăng số lần đã rút và lưu lại
+        count++;
+        localStorage.setItem('count_lixi_2026', count);
+      } else {
+        alert("Lỗi kết nối Server đầu năm rồi huhu!");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Mạng lag quá chị ơi!");
+    }
+  }
+</script>
+
+</body>
+</html>
